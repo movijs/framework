@@ -1,0 +1,30 @@
+{
+	"compilerOptions": {
+		"sourceMap": true,
+		"target": "ES6",
+		"module": "ES2015",
+		"moduleResolution": "nodenext",
+		"allowJs": true,
+		"strict": true,
+		"noUnusedLocals": false,
+		"experimentalDecorators": true,
+		"resolveJsonModule": true,
+		"esModuleInterop": true,
+		"removeComments": false,
+		"noImplicitAny": false,
+		"allowUnusedLabels": true,
+		"declaration": true,
+		"jsx": "preserve",
+		"outDir": "lib",
+		"lib": [
+			"esnext",
+			"dom"
+		],
+		"strictPropertyInitialization": false
+	},
+	"include": [
+		"global.d.ts",
+		"packages/movi/src",
+		"packages/movi/global.d.ts"
+	]
+}

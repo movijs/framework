@@ -1,0 +1,25 @@
+{
+  "name": "movijs",
+  "version": "1.0.7",
+  "description": "", 
+  "type": "module",
+  "main": "./src/index.ts",
+  "module": "./src/index.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/movi/movi.es.js",
+      "require": "./dist/movi/movi.umd.js"
+    }
+  },
+  "scripts": {
+    "dev": "vite",  
+    "publish": "",
+    "build":"tsc"
+  },
+  "files": [
+    "dist"
+  ],
+  "author": "Ekrem Erşahin",
+  "license": "MIT"
+ 
+}

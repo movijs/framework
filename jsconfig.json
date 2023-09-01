@@ -1,0 +1,26 @@
+{
+	"compilerOptions": {
+	  "sourceMap": true,
+	  "target": "es2015",
+	  "module": "ESNext",
+	  "moduleResolution": "Node",
+	  "allowJs": true,
+	  "strict": true,
+	  "noUnusedLocals": false,
+	  "experimentalDecorators": true,
+	  "resolveJsonModule": true,
+	  "esModuleInterop": true,
+	  "removeComments": false,
+	  "jsx": "preserve",
+	  "lib": [
+		"esnext",
+		"dom" 
+	  ],
+	  "types": [],
+	},
+	"include": [
+	  "global.d.ts",
+	  "packages/*/src"
+	]
+  }
+  
