@@ -1530,21 +1530,21 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
         }
         return result;
     }
-    setup?(sender?: caller);
+    setup?(sender: caller);
     initializeComponent?(sender: caller): void;
     activated?(sender: caller);
     activating?(sender: caller);
     routeChanged?(sender: caller): void;
     onRouteChanged?(sender: caller): void;
     interrupt?(sender: caller, next: () => any): void;
-    onconfig?(sender?: caller);
+    onconfig?(sender: caller);
     preconfig?(sender: caller);
-    oncreating?(sender?: caller);
-    oncreated?(sender?: caller);
-    onbuilding?(sender?: caller);
-    onbuilded?(sender?: caller);
-    ondisposing?(sender?: caller);
-    ondisposed?(sender?: caller);
+    oncreating?(sender: caller);
+    oncreated?(sender: caller);
+    onbuilding?(sender: caller);
+    onbuilded?(sender: caller);
+    ondisposing?(sender: caller);
+    ondisposed?(sender: caller);
     onshow?(sender: caller): void;
     onhide?(sender: caller): void;
     reload?: (() => caller) | undefined;

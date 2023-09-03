@@ -96,7 +96,7 @@ export class Component<ElementType extends ElementTypes = HTMLElement, StateType
         }
 
     }
-
+    setup?(sender?: Component<ElementType, StateType> | undefined);
     view?(): MoviComponent<ElementType, StateType, Component<ElementType, StateType>>;
     elementCreating?(current: any): any;
 }
