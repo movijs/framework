@@ -1,6 +1,6 @@
 {
     "name": "movijs",
-    "version": "1.2.32",
+    "version": "1.2.33",
     "description": "",
     "type": "module",
     "main": "./dist/index.esm.js",

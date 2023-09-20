@@ -1185,34 +1185,31 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
     }
     async show() {
         if (this.sendedShow) { return }
-        this.isVisible = true;
+       
         if (this._.isMainComponent) {
             this.controls.forEach(c => {
                 c.show();
             })
         } else {
             this._.methods.addEnterTransition();
-            this._.methods.waitTransition('enter', () => {
-                if (this.isRendered && this._.isHidden == true) {
-                    this._.isHidden = false;
-
-                    if (this._.replacedHidden && !this.parent) {
-                        document.body.appendChild(this.element);
-                    } else {
-                        if (!this.parent || this.parent.element == null) {
-                            document.body.replaceChild(this.element, this._.placeholder);
-                        } else if (this._.placeholder.parentNode) {
-                            this._.placeholder.parentNode.replaceChild(this.element, this._.placeholder);
-                        }
-                    }
-                    //this._.methods.addEnterTransition();
-                    //this._.methods.waitTransition('enter');
+            if (this.isRendered && this._.isHidden == true) {
+                this._.isHidden = false;
+                this.isVisible = true;
+                if (this._.replacedHidden && !this.parent) {
+                    document.body.appendChild(this.element);
                 } else {
-                    this._.isHidden = false;
+                    if (!this.parent || this.parent.element == null) {
+                        document.body.replaceChild(this.element, this._.placeholder);
+                    } else if (this._.placeholder.parentNode) {
+                        this._.placeholder.parentNode.replaceChild(this.element, this._.placeholder);
+                    }
                 }
-            });
-
-
+                //this._.methods.addEnterTransition(); 
+            } else {
+                this._.isHidden = false;
+                this.isVisible = true;
+            }
+            this._.methods.waitTransition('enter', () => { });
         }
         if (this.onupdated) this.onupdated(this as any, { data: this.model, field: '', source: 'show' })
         if (this.onshow && this.sendedShow == false) { this.sendedShow = true; this.onshow(this as any); }
@@ -1220,37 +1217,34 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
     private sendedShow = false;
     async hide() {
         this.sendedShow = false;
-        this.isVisible = false;
-        // this.addLeaveTransition();
-        // await this.waitTransition('leave');
-        this._.methods.addLeaveTransition();
-        this._.methods.waitTransition('enter', async () => {
-            if (this._.isMainComponent) {
-                this.controls.forEach(c => { c.hide() })
+       
+        if (this._.isMainComponent) {
+            this.controls.forEach(c => { c.hide() })
+        } else {
+            if (this.isRendered && this._.isHidden == false) {
+                this._.isHidden = true;
+                this.isVisible = false; 
+                this._.methods.addLeaveTransition();
+                await this._.methods.waitTransition('leave', () => { 
+                    if (!this.parent || !this.parent.element) {
+                        document.body.replaceChild(this._.placeholder, this.element);
+                    } else if (this.element.parentNode != undefined) {
+                        this.element.parentNode.replaceChild(this._.placeholder, this.element);
+                    }
+                });
+
             } else {
-                if (this.isRendered && this._.isHidden == false) {
-                    this._.isHidden = true;
-                    this._.methods.addLeaveTransition();
-                    await this._.methods.waitTransition('leave', () => {
-                        if (!this.parent || !this.parent.element) {
-                            document.body.replaceChild(this._.placeholder, this.element);
-                        } else if (this.element.parentNode != undefined) {
-                            this.element.parentNode.replaceChild(this._.placeholder, this.element);
-                        }
-                    });
-
-                } else {
-                    this._.replacedHidden = true;
-                    this._.isHidden = true;
-                    this.element.parentNode?.replaceChild(this._.placeholder, this.element);
-                }
-
+                this._.replacedHidden = true;
+                this._.isHidden = true;
+                this.isVisible = false; 
+                this.element.parentNode?.replaceChild(this._.placeholder, this.element);
             }
-        });
+
+        }
         if (this.onupdated) this.onupdated(this as any, { data: this.model, field: '', source: 'hidding' })
         if (this.onhide) this.onhide(this as any);
     }
-    
+
     signal(eventName: string | symbol, cb: (...args: any[]) => any, ...initialValues: any[]) {
         this._.on.add(this.context.on(eventName, cb));
         if (initialValues.length > 0) cb(...initialValues)
