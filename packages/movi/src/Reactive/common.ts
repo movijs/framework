@@ -103,7 +103,7 @@ export function targetTypeMap(rawType: string) {
 }
 
 export function getTargetType(value: any): TargetType {
-    if (value instanceof RouteManager || value instanceof ServiceManager || value instanceof Component) {
+    if (value instanceof RouteManager || value instanceof ServiceManager || value instanceof Component ) {
         return TargetType.SYSTEM;
     }
     return !Object.isExtensible(value)

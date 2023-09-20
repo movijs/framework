@@ -27,6 +27,9 @@ export class CreateMoviApp implements IMoviApp {
             middleware: ApplicationService.current.middleware,
             ModelSettings: ApplicationService.current.ModelSettings
         });
+        ApplicationService.current.starters.forEach(f => {
+            f(this.context);
+        })
         if (this.ServiceConfiguration) this.ServiceConfiguration(ApplicationService.current.services);
         if (this.offline) window.addEventListener("offline", (e) => { this.offline && this.offline(this, e) })
         if (this.online) window.addEventListener("online", (e) => { this.online && this.online(this, e) })

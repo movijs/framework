@@ -164,6 +164,7 @@ export interface IControl<ElementType extends ElementTypes, Props, caller> exten
     isRendered: boolean;
     isDisposed: boolean;
     isConnected: boolean;
+    isVisible: Boolean;
     style(properties: styleKeys): IControl<ElementType, Props, caller>;
     autostyle: controlStyle<ElementType>;
     view?(): any;
@@ -176,4 +177,9 @@ export interface IControl<ElementType extends ElementTypes, Props, caller> exten
     onhide?(sender: caller): void;
     onChildAdded?(sender: this, child: any, index: number);
     onChildRemoved?(sender: this, child: any);
+    options?: {
+        authorize?: boolean,
+        headers?: Object,
+    }
+    doWork<T>(waitable: Promise<T> | PromiseLike<T>):Promise<T>
 }

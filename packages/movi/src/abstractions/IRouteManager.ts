@@ -34,7 +34,8 @@ export class RouteItem {
 
 export interface IRouteManager {
     routes: Map<any, RouteRecord>; 
-    add(item: RouteItem):void;  
+    add(item: RouteItem, layout?: any): void; 
+    insert(target: string|RouteRecord, item: RouteItem)
     get(name: string): RouteRecord;
     router: IRouter; 
    // navigate(url: string):void;

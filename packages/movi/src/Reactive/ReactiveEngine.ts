@@ -1,8 +1,6 @@
-import { Component } from "../Component";
-import { RouteManager } from "../Router/RouteManager";
-import { ServiceManager } from "../ServiceManager";
+
 import { IDirective } from "../abstractions/IDirective";
-import { Flags, IHook, ITERATE_KEY, TargetType, UnwrapNestedRefs, UnwrapValueRefs, enableTracking, followTracking, getRaw, getTargetType, isObject, pauseTracking, resetTracking } from "./common";
+import { TargetType, UnwrapNestedRefs, UnwrapValueRefs, enableTracking, followTracking, getRaw, getTargetType, isObject, pauseTracking, resetTracking } from "./common";
 import { ArrayMethods } from "./handlers/arrayMethods";
 import { createGetter } from "./handlers/getter";
 import { createDelelte, createHas } from "./handlers/orhers";
@@ -64,6 +62,7 @@ export class ReactiveEngine {
         ReactiveEngineMapper.add(this);
     }
     dispose() {
+
         ReactiveEngineMapper.delete(this);
         this.TargetMap.clear();
         this.TargetMap.forEach(x => {
@@ -94,6 +93,8 @@ export class ReactiveEngine {
             }
         });
         this.cacheFx.clear();
+        if (this._original) AllreactiveMap.delete(this._original);
+        delete this._original;
         this.ReactiveMap = new WeakMap();
     }
     //ReactiveMap: WeakMap<any, any> = new WeakMap();
@@ -115,6 +116,7 @@ export class ReactiveEngine {
         has: createHas(this),
         deleteProperty: createDelelte(this)
     }
+    _original;
     reactive<T extends object>(model: T): UnwrapNestedRefs<T> {
 
         var self = this;
@@ -153,7 +155,7 @@ export class ReactiveEngine {
         // if (targetType === TargetType.INVALID) {
         //     return model as any
         // }
-
+        this._original = model;
         if (Array.isArray(model)) {
             var proxy = new Proxy(model, this.arrayHandler);
             // var original = Object.getPrototypeOf(proxy);
@@ -315,6 +317,7 @@ export class ReactiveEngine {
         }
         this.cacheTimer && window.clearTimeout(this.cacheTimer)
         this.cacheTimer = window.setTimeout(async () => {
+
             Promise.resolve().then(() => {
                 this.cacheFx.forEach((v, k) => {
                     if (k.directive && !k.directive.disposed) {
@@ -331,7 +334,8 @@ export class ReactiveEngine {
     triggerEffect(
         effect: FxMapper, key: any) {
         if (effect !== currentFx) {
-            effect.run(); 
+            effect.run();
+
         }
     }
 

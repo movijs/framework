@@ -15,13 +15,14 @@ export class RouteManager implements IRouteManager {
     public get(name: string): RouteRecord {
         return this.routeNames.get(name) as any;
     }
-    public add(item: RouteItem) {
+    public add(item: RouteItem, layout?: any) {
 
         if (item.path == "") { item.path = "/" }
         item.path = this._trimSlashes(item.path as string);
 
         var rc = new RouteRecord();
         rc.control = item.control;
+        rc.layout = layout;
         rc.path = this._trimSlashes(item.path);
         rc.parent = undefined;
         rc.isDefault = false;
@@ -37,6 +38,42 @@ export class RouteManager implements IRouteManager {
         this.AddChildNode(item, item.childs, this._trimSlashes(item.path), rc);
 
     }
+
+    /**
+     * 
+     * @param target Name or Route Item
+     * @param item 
+     */
+    public insert(target: string | RouteRecord, item: RouteItem) {  
+        var addded = false;
+        this.routes.forEach(x => {
+            if (x.name == target || x === target || x.path == target) {
+                addded = true;
+                if (item.path == "") { item.path = "/" }
+                item.path = this._trimSlashes(item.path as string);
+                var rc = new RouteRecord();
+                rc.control = item.control;
+                rc.path = this._trimSlashes(item.path);
+                rc.parent = undefined;
+                rc.isDefault = false;
+                rc.keepAlive = item.keepAlive;
+                rc.parent = x;
+                rc.instances = { layout: null as any, control: null as any },
+                    rc.extend = item.extend;
+                rc.onShow = item.onShow;
+                rc.name = item.name;
+                if (rc.name) {
+                    this.routeNames.set(rc.name, rc);
+                }
+                this.routes.set(item.path, rc);
+                this.AddChildNode(item, item.childs, this._trimSlashes(item.path), rc);
+            }
+        });
+        if (!addded) {
+            this.add(item);
+        }
+    }
+
     private _trimSlashes(path: string) {
         if (typeof path !== "string") {
             return "";
@@ -363,7 +400,7 @@ export class RouteManager implements IRouteManager {
 
         this._objectMapper.clear();
         if (route.parent != null) {
-            //this.buildmapMiddlewared(route.parent, route);
+             //this.buildmapMiddlewared(route.parent, route);
 
             await this.buildmap(route.parent, route);
         }
@@ -504,7 +541,7 @@ export class RouteManager implements IRouteManager {
                         ApplicationMiddleware.forEach(mw => {
                             allMiddleware++;
                             if (mw) {
-                                const subs = (item) => { 
+                                const subs = (item) => {
                                     if (item.parent) {
                                         subs(item.parent)
                                     }
@@ -520,7 +557,7 @@ export class RouteManager implements IRouteManager {
                                 // }
                             }
 
-                            
+
                         })
                     } else {
                         next();

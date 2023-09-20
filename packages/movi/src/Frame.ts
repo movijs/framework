@@ -47,11 +47,12 @@ export class Frame extends Component<any, any>{
         }
 
         this.isBusy = true;
-        page.parent = this.parent;
+        page.parent = this;
 
 
         const complete = () => {
             this.current = page;
+             
             try {
                 page.build();
                 if (page['nodes']) {

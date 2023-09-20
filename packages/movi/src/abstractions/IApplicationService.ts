@@ -47,11 +47,12 @@ export class SysInternalNotification {
     }
 }
 
-export interface IDisposable { 
-    dispose(cb?:Function);
+export interface IDisposable {
+    dispose(cb?: Function);
 }
 export interface IApplicationService {
     services: IServiceManager;
+    starters: Set<Function>;
     ControlCollection: WeakMap<any, any>;
     RouteManager: IRouteManager;
     MainPage: IControl<any, any, any>;
@@ -80,4 +81,5 @@ export interface IApplicationService {
         add(item: IDisposable);
         except();
     }
+    startup(settings:(context:IApplicationService)=> void)
 }

@@ -100,7 +100,7 @@ export class Component<ElementType extends ElementTypes = HTMLElement, StateType
     view?(): MoviComponent<ElementType, StateType, Component<ElementType, StateType>>;
     elementCreating?(current: any): any;
 }
- 
+
 // export class ComponentDetailed<ElementType extends ElementTypes, StateType, caller extends ComponentDetailed<ElementType, StateType, caller>> extends MoviComponent<ElementType, StateType, ComponentDetailed<ElementType, StateType, caller>> {
 
 //     constructor(tag: ElementType | string)
@@ -162,7 +162,12 @@ export function AsyncContainer(importer, props) {
     var result = new Component({});
     if (importer instanceof Promise) {
         result.using(importer, (c: any) => {
-            result.controls.add(resolveElement(c.default, props) as any);
+            if (c.default) {
+                result.controls.add(resolveElement(c.default, props) as any);    
+            } else {
+                throw new Error("has not found default export.",c); 
+            }
+            
         })
     }
     return result;
@@ -200,8 +205,7 @@ export function createElement(tag: any, options: any): Component<any, any> {
     } else {
         return resolveElement(tag, options);
     }
-}
-
+} 
 export function moviFragment(options: any): Component<any, any> {
     // console.error("[MOVIJS]: fragment is not supported. auto convert to div element.")
     // return moviComponent('div', {...options});
@@ -234,9 +238,7 @@ export function moviFragment(options: any): Component<any, any> {
     // // //f.controls.add(moviComponent('div', {}))
     // // console.error('fragment',f);
     // return f;
-}
-
-
+} 
 function resolveElement(tag, props): Component<any, any> {
 
     var controller: any;
@@ -270,15 +272,22 @@ function resolveElement(tag, props): Component<any, any> {
             } else if (typeof getFn === 'object') {
                 controller = new Component({ ...getFn, ...Ctx, ...props });
             } else {
-                var ntag;
+                var ntag; 
                 try {
-                    ntag = new tag({ ...Ctx, ...props });
-                } catch (err) {
-                    ntag = tag();
-                }
+                    if (tag && Object.getPrototypeOf(tag) && Object.getPrototypeOf(tag).constructor) {
+                        ntag = new tag({...props });
+                    } else {
+                        ntag = tag(props);
+                    }
+                } catch (error) {
+                    ntag = tag(props);
+                } 
 
                 if (ntag instanceof Promise) {
                     controller = AsyncContainer(ntag, props);
+                } else if (ntag instanceof Component) { 
+                    return ntag;
+                    //controller = new Component({ view: () => ntag, ...props })
                 } else {
                     controller = new Component({ view: () => ntag, ...props })
                 }
@@ -286,12 +295,10 @@ function resolveElement(tag, props): Component<any, any> {
             }
 
         } catch (error) {
-
-
-            controller = new tag(Ctx);
-            if (!controller['bind']) {
-                controller = Object.assign(controller, new Component(props));
-            }
+            controller = tag(props);
+            // if (!controller['bind']) {
+            //     controller = Object.assign(controller, new Component(props));
+            // }
         }
     } else {
 
@@ -300,25 +307,4 @@ function resolveElement(tag, props): Component<any, any> {
     }
 
     return controller;
-}
-
-
-
-export class MyClass {
-    readonly foo;
-
-    static get bar(): string {
-        return "bar";
-    }
-}
-
-export class MyPayloadClass<T> extends MyClass {
-    constructor(public readonly payload: T) {
-        super();
-    }
-}
-
-
-
-
-
+} 

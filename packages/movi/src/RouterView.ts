@@ -49,16 +49,16 @@ export class RouterView extends Component<any, any>{
         }
 
         isBusy = true;
-        page.parent = this.parent;
+        page.parent = this;
 
 
         const complete = () => {
             this.current = page;
-             
+           ;
             ApplicationService.current['lastPage'] = page;
 
             try { 
-                page.build(); 
+                this.add(page)
                 if (page['nodes']) {
                     page['nodes'].forEach(async c => {
                         c.parent = this;

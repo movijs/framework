@@ -20,6 +20,13 @@ export class Collection<T extends Object> extends Array {
         if (this.ItemAddedBefore != undefined) { this.ItemAddedBefore(item); };
         return i;
     }
+
+    public insertBefore(item: T) {
+        this._map.add(item);
+        var i = this.unshift(item) - 1;
+        if (this.ItemAddedBefore != undefined) { this.ItemAddedBefore(item); };
+        return i;
+    }
     public insert(start: number, item: T) {
         this._map.add(item);
         var i = this.splice(start, 0, item);

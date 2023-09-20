@@ -9,7 +9,7 @@ import { controlStyle } from "./core/controlStyle";
 import { system } from "./environment";
 import { getTransitionInfo } from "./core/transition";
 import { Directive } from "./directive";
-import { Component, ReactiveEngine, baseemits, baseeventargs } from ".";
+import { Component, ReactiveEngine, RouterView, baseemits, baseeventargs } from ".";
 
 
 
@@ -227,6 +227,7 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
             waiterFr: DefaultFragmentElement.cloneNode(),// document.createDocumentFragment(),
             waiterin: null as any,
             AppendElement: async (child) => {
+
                 const array = Array.prototype.slice.call(this.element.childNodes);
                 if (this._.isMainComponent) {
                     //Mevcut komponent bir fragment içeriyor. Bir üst kontrole yönlendir. ve ana düğümü bulana kadar devam et.
@@ -234,7 +235,8 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
                     if (this.parent) {
                         (this.parent as any)._.methods.AppendElement(child);
                     } else {
-                        console.error("Ana düğüm girişi bulunamadı. İşlem burada sonlandırılır.")
+
+                        console.error("Ana düğüm girişi bulunamadı. İşlem burada sonlandırılır.", child);
                     }
                 } else {
                     // Bu kontroller bir html düğümüdür.  
@@ -524,7 +526,6 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
             props = {};
         }
         this.props = props;
-
         if (args) {
             //Object.assign(this, args);
             // if (args.preconfig) { this.on("preconfig", args.preconfig.bind(this)); }
@@ -641,11 +642,17 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
 
         this._.event.oncreating();
         this._.event.preconfig();
+        if (this['intervention'] && this['intervention']['preconfig']) {
+            //this['intervention']['onconfig'] = this['intervention']['onconfig'].bind(this);
+            this['intervention']['preconfig'](this);
+        }
+
+
+        if (this.onconfig) { this.onconfig(this as any); }
         if (this['intervention'] && this['intervention']['onconfig']) {
             //this['intervention']['onconfig'] = this['intervention']['onconfig'].bind(this);
             this['intervention']['onconfig'](this);
         }
-        if (this.onconfig) { this.onconfig(this as any); }
 
         this._emitCollection?.get("onconfig")?.forEach(cb => {
             cb(this);
@@ -665,7 +672,6 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
             this.onChildAdded && this.onChildAdded(this, item, this.controls.length - 1);
         }
         this.controls.ItemAddedBefore = (item: any) => {
-
             if (this.isRendered) this._.methods.itemadd(this.controls.length - 1, item);
             this.onChildAdded && this.onChildAdded(this, item, this.controls.length - 1);
         }
@@ -688,6 +694,8 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
         if (!ElementModelMap.has(this.element)) {
             ElementModelMap.set(this.element, this as any);
         }
+
+
     }
     private _iswait: boolean = false;
     private get iswait(): boolean {
@@ -922,7 +930,7 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
                 })
 
                 if (self['intervention'] && self['intervention']['onbuilded']) {
-                    self['intervention']['onbuilded'].call(self)
+                    self['intervention']['onbuilded'](self)
                 }
                 this._.methods.addSlots();
 
@@ -949,6 +957,10 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
         } catch (error) {
             console.error(error)
         }
+
+        if (this['const']) {
+            this.parent[this['const']] = this;
+        }
     }
     updateState(deep: boolean = false, onlyChild: boolean = false) {
 
@@ -957,7 +969,7 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
             const resume = async (self) => {
                 if (!onlyChild) {
                     self.bind.init();
-                }  
+                }
                 if (deep) {
                     self.controls.forEach(x => {
                         if (typeof x.updateState === 'function') {
@@ -1013,6 +1025,11 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
             }
 
             if (self['ondisposing']) { self['ondisposing'](self as any); }
+
+            if (this['intervention'] && this['intervention']['ondisposing']) {
+                this['intervention']['ondisposing'](this);
+            }
+
             this._emitCollection?.get("ondisposing")?.forEach(cb => {
                 cb(this);
             })
@@ -1168,6 +1185,7 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
     }
     async show() {
         if (this.sendedShow) { return }
+        this.isVisible = true;
         if (this._.isMainComponent) {
             this.controls.forEach(c => {
                 c.show();
@@ -1202,6 +1220,7 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
     private sendedShow = false;
     async hide() {
         this.sendedShow = false;
+        this.isVisible = false;
         // this.addLeaveTransition();
         // await this.waitTransition('leave');
         this._.methods.addLeaveTransition();
@@ -1231,6 +1250,7 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
         if (this.onupdated) this.onupdated(this as any, { data: this.model, field: '', source: 'hidding' })
         if (this.onhide) this.onhide(this as any);
     }
+    
     signal(eventName: string | symbol, cb: (...args: any[]) => any, ...initialValues: any[]) {
         this._.on.add(this.context.on(eventName, cb));
         if (initialValues.length > 0) cb(...initialValues)
@@ -1403,6 +1423,7 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
     isRendered: boolean = false;
     isDisposed: boolean = false;
     isConnected: boolean = false;
+    isVisible: Boolean = true;
     style(properties: styleKeys): IControl<ElementType, any, any> {
         if (this.element instanceof HTMLElement) {
             Object.entries(properties).forEach(t => {
@@ -1418,7 +1439,20 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
             (value: T) => { this && !this.isDisposed && onfulfilled ? onfulfilled(value) : ''; },
             (reason: any) => { this && !this.isDisposed && onrejected ? onrejected(reason) : '' });
     }
-    settings?: { isRouterView?: boolean | undefined; keepAlive?: boolean | undefined; jump?: boolean | undefined; transition?: { name?: string | undefined; } | undefined; } | undefined;
+    doWork<T>(waitable: Promise<T> | PromiseLike<T>): Promise<T> {
+        return waitable.then(
+            (value: T) => {
+                if (this && !this.isDisposed) { return value } else throw "Component is disposed";
+            }) as Promise<T>;
+    }
+    settings?: { isRouterView?: boolean | undefined; keepAlive?: boolean | undefined; transition?: { name?: string | undefined; } | undefined; } | undefined;
+    options: {
+        authorize: boolean,
+        headers: Object,
+    } = {
+            authorize: false,
+            headers: []
+        }
     public model: any;
     useModel<T extends object>(model: T): T
     useModel(model: object) {
@@ -1550,5 +1584,6 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
     reload?: (() => caller) | undefined;
     onmounted?(sender);
 }
+
 
 

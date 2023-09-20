@@ -128,6 +128,10 @@ export class RouterLink extends Component<HTMLElement, RouterLinkOptions> {
             var hrf: any[] = [''];
             if (this.href) {
                 hrf = this.href.split('?');
+            }else  if (this.to) {
+                hrf = this.to.split('?');
+            }if (this.props.to) {
+                hrf = this.props.to.split('?');
             }
 
             if (this.props && this.props.activeClass && this.props.activeClass !== '' && this.context.route.path.split("?")[0] === hrf[0]) {
@@ -140,8 +144,7 @@ export class RouterLink extends Component<HTMLElement, RouterLinkOptions> {
                 }
 
                 if (this.onActive) { this.onActive() }
-            } else {
-
+            } else { 
                 if (this.props && this.props.activeClass) {
                     var cls = this.props.activeClass.split(" ");
                     cls.forEach(l => {

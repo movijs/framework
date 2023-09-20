@@ -21,9 +21,17 @@ export function createSetter(engine: ReactiveEngine) {
         }
         var raw = getRaw(receiver);
         var resulme = getRaw(target) === getRaw(receiver);
+ 
+        if (!Array.isArray(target) && !isModified(newValue, oldValue)) {
+            resulme = false; 
+        } else if (Array.isArray(target) && !isNew) {
+            resulme = false;
+        }  
 
         if (resulme) {
-            engine.trigger(target, p, newValue)
+            engine.trigger(target, p, newValue);
+
+
             // if (arrayScope.enabled) { 
             //     var origin = arrayScope.key; 
             //     removeArrayStack();  
@@ -49,7 +57,7 @@ export function createSetter(engine: ReactiveEngine) {
             //     engine.trigger(target, p, newValue)
             // }
         }
-       
+
         return res;
 
     }

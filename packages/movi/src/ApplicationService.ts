@@ -24,6 +24,7 @@ export class MoviApplicationService implements IApplicationService {
     public Loading!: IControl<any, any, any>;
     public ControlCollection: WeakMap<any, any> = new WeakMap();
     public Directives = new Set<any>();
+    public starters = new Set<Function>();
     ModelSettings: IModelSettings = { PageSize: 25 };
     public state = this.useModel({});
     GarbageCollection = {
@@ -125,8 +126,7 @@ export class MoviApplicationService implements IApplicationService {
             }
         }
     }
-
-
+ 
     middleware(ref: (next: () => any, e: IControl<any, any, any>) => void) {
         ApplicationMiddleware.add(ref);
     }
@@ -157,6 +157,12 @@ export class MoviApplicationService implements IApplicationService {
 
     navigate(uri) {
         this.RouteManager.router.trigger(uri)
+    }
+
+    startup(settings:(context:IApplicationService)=> void) {
+        if (!this.starters.has(settings)) {
+            this.starters.add(settings);            
+        }
     }
 }
 
