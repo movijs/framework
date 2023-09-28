@@ -7,8 +7,8 @@ import { Dictionary, routeType } from "./core";
 import { RouteManager } from "./Router/RouteManager";
 import { ServiceManager } from "./ServiceManager";
 import { reactive, effect } from "./Reactive";
-import { CustomDirective, IDirective } from "./abstractions/IDirective";
-
+import * as Platform from "./core/platform"; 
+import * as Browser from "./core/Browser"; 
 
 const AppWatch = new Map<any, any>();
 const AppWatchKeys = new Dictionary<string | symbol | any, Set<any>>();
@@ -25,9 +25,11 @@ export class MoviApplicationService implements IApplicationService {
     public ControlCollection: WeakMap<any, any> = new WeakMap();
     public Directives = new Set<any>();
     public starters = new Set<Function>();
-    ModelSettings: IModelSettings = { PageSize: 25 };
+    public platform: typeof Platform = Platform;
+    public browser:typeof Browser = Browser;
+    public ModelSettings: IModelSettings = { PageSize: 25 }; 
     public state = this.useModel({});
-    GarbageCollection = {
+    public GarbageCollection = {
         items: [] as IDisposable[],
         add(item: IDisposable) {
             this.items.push(item)
@@ -129,8 +131,7 @@ export class MoviApplicationService implements IApplicationService {
  
     middleware(ref: (next: () => any, e: IControl<any, any, any>) => void) {
         ApplicationMiddleware.add(ref);
-    }
-
+    } 
 
     public CreateObject(type, params) {
         var c = type;

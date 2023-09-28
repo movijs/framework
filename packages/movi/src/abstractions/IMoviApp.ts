@@ -9,6 +9,7 @@ export interface IMoviApp {
     Navigate?(e: NavigateEventArgs): void;
     offline?(sender: IMoviApp, e: Event): void;
     online?(sender: IMoviApp, e: Event): void;
+    onfullscreen?(isFullscreen: boolean):void;
     use?(module: any): void;
     context?: IApplicationService; 
 }

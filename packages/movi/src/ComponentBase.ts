@@ -1019,7 +1019,7 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
         this._.methods.addLeaveTransition();
         this._.methods.waitTransition('leave', async () => {
 
-            if (self._.on) {
+            if (self && self._  && self._.on && !self.isDisposed) {
                 self._.on.forEach(t => t());
                 self._.on.clear();
             }

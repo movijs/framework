@@ -3,7 +3,8 @@ import { routeType } from "../core/NavigateEventArgs";
 import { IControl } from "./IControl";
 import { IRouteManager } from "./IRouteManager";
 import { IServiceManager } from "./IServiceManager";
-
+import * as Platform from "../core/platform"; 
+import * as Browser from "../core/Browser";
 const InternalEventStoreMap = new Map<any, any>();
 
 export interface IInternalEventStoreBase {
@@ -58,6 +59,8 @@ export interface IApplicationService {
     MainPage: IControl<any, any, any>;
     NotFoundPage: IControl<any, any, any>;
     Loading: IControl<any, any, any>;
+    platform: typeof Platform ;
+    browser:typeof Browser;
     state: any;
     store: any;
     Directives: Set<any>;

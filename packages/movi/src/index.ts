@@ -17,6 +17,7 @@
 
 
 export * from "./abstractions";
+export * from "./core";
 export { styleKeys as ICssStyle } from "./core";
 export * from "./CreateMovi";
 export * from "./Reactive";
