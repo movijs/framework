@@ -547,7 +547,7 @@ export class RouteManager implements IRouteManager {
                                     }
                                     mw(next, item);
                                 }
-                                subs(r.instances.control);
+                                subs(r.instances.control); 
                                 //mw(next, r.instances.control);
                                 // if (r.instances.layout) {
                                 //     mw(next, r.instances.layout);

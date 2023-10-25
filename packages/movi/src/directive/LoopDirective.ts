@@ -119,7 +119,7 @@ export class LoopDirective implements IDirective<LoopDirectiveSettings>{
 
     }
     async updateAsync(items) {
-
+         
         var settings = this._settings;
         var Source = this._source;
 

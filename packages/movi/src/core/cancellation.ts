@@ -65,6 +65,7 @@ class MutableToken implements CancellationToken {
 		if (!this._emitter) {
 			this._emitter = new Emitter<any>();
 		}
+		
 		return this._emitter.event;
 	}
 

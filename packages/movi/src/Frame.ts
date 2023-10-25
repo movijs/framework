@@ -1,5 +1,4 @@
-import { IControl } from "./abstractions";
-import { ApplicationService } from "./ApplicationService";
+import { IControl } from "./abstractions"; 
 import { Component } from "./Component";
 export class Frame extends Component<any, any>{
     public current: IControl<any,any,any> | null = null;

@@ -1,4 +1,3 @@
-import { ApplicationService } from "movijs";
 import { Disposable, markAsSingleton } from "./lifecycle";
 import { Emitter, Event } from "./Event";
 const userAgent = navigator.userAgent;

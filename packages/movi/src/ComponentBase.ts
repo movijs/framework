@@ -51,6 +51,7 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
     public keepAlive: boolean = true;
     public extend?: any;
     slots?: IControl<any, any, any>[];
+    name?: string;
     elementCreating?(current: any): any;
 
     private _ = {
@@ -103,7 +104,12 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
                 })
 
                 if (this['intervention'] && this['intervention']['oncreating']) {
-                    this['intervention']['oncreating'](this)
+                    try {
+                        this['intervention']['oncreating'](this, this)
+                    } catch (error) {
+                        debugger;
+                    }
+
                 }
 
             },
@@ -111,10 +117,10 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
 
                 if (this.preconfig) this.preconfig(this as any);
                 this._emitCollection?.get("preconfig")?.forEach(cb => {
-                    cb.call(this, this);
+                    cb(this);
                 })
                 if (this['intervention'] && this['intervention']['preconfig']) {
-                    this['intervention']['preconfig'].call(this);
+                    this['intervention']['preconfig'](this);
                 }
             }
         },
@@ -186,7 +192,7 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
                 if (this.initializeComponent) { this.initializeComponent = this.initializeComponent.bind(this); };
 
                 this._emitCollection?.get("initializeComponent")?.forEach(cb => {
-                    cb.call(this, this);
+                    cb(this);
                 })
 
                 if (this.setup) {
@@ -195,7 +201,11 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
 
 
                 this._emitCollection?.get("setup")?.forEach(cb => {
-                    cb.call(this, this);
+                    cb(this);
+                })
+
+                this._emitCollection?.get("onsetup")?.forEach(cb => {
+                    cb(this);
                 })
 
                 if (this['intervention'] && this['intervention']['setup']) {
@@ -212,7 +222,7 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
                             })
                         }
                     } else {
-                        this['intervention']['setup'].call(this, this);
+                        this['intervention']['setup'](this);
                     }
                 }
                 this.context.extensions && this.context.extensions.forEach((x, y, z) => {
@@ -255,12 +265,15 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
                                         if (ref._.isMainComponent) {
                                             target = target.previousElementSibling;
                                         }
+
                                         this.element.insertBefore(child.element, target);
                                     } else {
+
                                         this.element.insertBefore(child.element, child.parent.element);
                                     }
 
                                 } else {
+
                                     this.element.insertBefore(child.element, child.parent.element);
                                 }
 
@@ -277,14 +290,15 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
                             //console.error("Gelen düğüm eklenecek",owner?array.indexOf(owner.element):'')
                             if (child.parent && array.indexOf(child.parent.element) > -1) {
 
-                                if (child.parent && child.parent._.isMainComponent) {
-                                    this.element.insertBefore(child.element, child.parent.element);
+                                var ito = child['insertTo'];
+                                var ref = child.parent.controls.filter(ff => ff.isRendered)[ito];
+                                if (ref && ref.isVisible) {
+                                    this.element.insertBefore(child.element, ref.element);
                                 } else {
                                     this.element.insertBefore(child.element, child.parent.element);
                                 }
 
                             } else {
-
                                 this.element.appendChild(child.element);
                             }
 
@@ -498,9 +512,31 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
                         t.build();
                     })
                 } else {
-                    item['insertTo'] = index;
-                    item.parent = self;
-                    item.build();
+                    if (item.build) {
+                        item['insertTo'] = index;
+                        item.parent = self;
+                        item.build();
+                    } else {
+                        var nitem = item;
+                        if (typeof item === 'function') {
+                            nitem = item();
+                        }
+                        if (nitem instanceof Component) {
+                            nitem['insertTo'] = index;
+                            nitem.parent = self;
+                            nitem.build();
+                        } else if (typeof nitem === 'boolean' || typeof nitem === 'bigint' || typeof nitem === 'string') {
+                            var adding = new Component('text');
+                            adding.bind.text(() => item);
+                            adding.parent = self;
+                            adding['insertTo'] = index;
+                            adding.build();
+                            ;
+                        } else {
+                            console.warn('build err', typeof nitem, nitem, item);
+                        }
+
+                    }
                 }
 
             },
@@ -520,6 +556,19 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
     }
     constructor(tag, props, args) {
         if (this.elementCreating) { tag = CreateLocalElement(this.elementCreating(tag)) }
+
+
+
+        Object.keys(this).forEach(k => {
+            if (typeof this[k] === 'function') {
+                this[k] = this[k].bind(this);
+            }
+        })
+        Object.keys(this._.methods).forEach(k => {
+            if (typeof this._.methods[k] === 'function') {
+                this._.methods[k] = this._.methods[k].bind(this);
+            }
+        })
         var assigned = {};
         var self = this;
         if (!props) {
@@ -547,9 +596,9 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
             if (args.ondisposing) { this.on("ondisposing", args.ondisposing.bind(this)); }//this.ondisposing = args.ondisposing;
             if (args.ondisposed) { this.on("ondisposed", args.ondisposed.bind(this)); }//this.ondisposed = args.ondisposed;
             if (args.onconfig) { this.on("onconfig", args.onconfig.bind(this)); }//this.onconfig = args.onconfig;
-            if (args.setup) { this.on("setup", args.setup.bind(this)); }// this.setup = args.setup;
-            if (args.initializeComponent) { this.on("initializeComponent", args.initializeComponent.bind(this)); }// this.setup = args.setup;
-
+            if (args.onsetup) { this.on("onsetup", args.onsetup.bind(this)); }//this.onconfig = args.onconfig;
+            if (args.setup) { this.setup = args.setup; /*this.on("setup", args.setup.bind(this));*/ }// this.setup = args.setup;
+            if (args.initializeComponent) { this.on("initializeComponent", args.initializeComponent.bind(this)); }// this.setup = args.setup; 
             Object.keys(args).forEach(k => {
                 if (k != 'props' && k !== 'preconfig' && k !== 'oncreating' && k !== 'oncreated' && k !== 'onbuilding' && k !== 'onbuilded' && k !== 'ondisposing' && k !== 'ondisposed' && k !== 'onconfig' && k != 'setup') {
                     assigned[k] = args[k];
@@ -559,13 +608,12 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
         Object.assign(this, assigned);
 
 
+
         Object.keys(this).forEach(k => {
             if (typeof this[k] === 'function' && k.startsWith('on') && k.length > 2) {
                 this.on(k, this[k].bind(this));
             }
         })
-
-
 
 
 
@@ -583,16 +631,7 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
         this.removeHandler = this.removeHandler.bind(this);
         this.using = this.using.bind(this);
 
-        Object.keys(this).forEach(k => {
-            if (typeof this[k] === 'function') {
-                this[k] = this[k].bind(this);
-            }
-        })
-        Object.keys(this._.methods).forEach(k => {
-            if (typeof this._.methods[k] === 'function') {
-                this._.methods[k] = this._.methods[k].bind(this);
-            }
-        })
+
         //Object.assign(this, props)
 
 
@@ -681,6 +720,9 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
             this.onChildAdded && this.onChildAdded(this, item, index);
         }
 
+        this.controls.onItemRemoved = (item, index) => {
+            this.onChildRemoved && this.onChildRemoved(this, item as any);
+        }
         if (this.oncreated) this.oncreated(this as any);
         this._emitCollection?.get("oncreated")?.forEach(cb => {
             cb(this);
@@ -760,7 +802,9 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
     element: ElementType = null as any;
     async build(target?: any) {
         if (this.isDisposed) { return }
-
+        if (this.name) {
+            console.error('name', this.name, this);
+        }
         if (this.onupdating) this.onupdating(this as any, { data: this.model, field: '', source: 'building' })
         if (this["ref"]) { this["ref"](this); }
 
@@ -798,10 +842,14 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
                 // }
 
                 //filter(t => t.isRendered === false || t.isRendered === undefined || t.isRendered === null)
-                var _self = this;
+
                 this.controls.forEach((item, index) => {
-                    _self._.methods.itemadd(index, item);
+                    _this._.methods.itemadd(index, item);
                 })
+
+                if (_this.parent) {
+                    _this.parent['_'].methods.AppendElement(this);
+                }
                 return;
             };
 
@@ -810,7 +858,7 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
 
                 //self._.isInited == false && 
                 if (self['intervention'] && self['intervention']['preconfig']) {
-                    self['intervention']['preconfig'].call(self)
+                    self['intervention']['preconfig'](self)
                 }
                 self._.isInited = true;
 
@@ -1019,7 +1067,7 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
         this._.methods.addLeaveTransition();
         this._.methods.waitTransition('leave', async () => {
 
-            if (self && self._  && self._.on && !self.isDisposed) {
+            if (self && self._ && self._.on && !self.isDisposed) {
                 self._.on.forEach(t => t());
                 self._.on.clear();
             }
@@ -1036,7 +1084,7 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
 
             this.disposeSlots.call(this);
 
-            self.bind.dispose();
+            self && self.bind && self.bind.dispose();
 
 
             if (self['nodes']) {
@@ -1056,10 +1104,17 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
 
                     if (Array.isArray(control)) {
                         await control.forEach(async t => {
-                            t.flush();
+                            t && t.flush();
                         })
                     } else {
-                        control.flush();
+                        if (typeof control === 'function') {
+                            var d = (<Function>control)();
+                            if (d && d instanceof Component) {
+                                d.flush();
+                            }
+                        } else {
+                            control && !control.isDisposed && control.flush();
+                        }
                     }
                     // if (self._.isMainComponent || self.element instanceof Comment) {
                     //     control.dispose();
@@ -1070,20 +1125,20 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
                 })
 
                 if (self.model) {
-                    self.context.clearModel(self.model);
+                    self.context && self.context.clearModel(self.model);
                     self.model = null;
                 }
                 self._.modelInstances.forEach(m => {
                     var t = (m as ReactiveEngine);
-                    t.dispose();
+                    t && t.dispose();
                     m = null;
                 });
-                self._.modelInstances.clear();
+                self._ && self._.modelInstances.clear();
                 if (self.parent && !self.parent.isDisposed) {
-                    self.parent.controls.remove(self as any);
+                    self.parent && self.parent.controls && self.parent.controls.remove(self as any);
                 }
 
-                self.controls.clear();
+                self.controls && self.controls.clear();
 
 
                 system.GC(self);
@@ -1143,7 +1198,14 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
                         t.flush();
                     })
                 } else {
-                    control.flush();
+                    if (typeof control === 'function') {
+                        var d = (<Function>control)();
+                        if (d && d instanceof Component) {
+                            d.flush();
+                        }
+                    } else {
+                        control && !control.isDisposed && control.flush();
+                    }
                 }
             })
 
@@ -1185,7 +1247,7 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
     }
     async show() {
         if (this.sendedShow) { return }
-       
+
         if (this._.isMainComponent) {
             this.controls.forEach(c => {
                 c.show();
@@ -1212,20 +1274,20 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
             this._.methods.waitTransition('enter', () => { });
         }
         if (this.onupdated) this.onupdated(this as any, { data: this.model, field: '', source: 'show' })
-        if (this.onshow && this.sendedShow == false) { this.sendedShow = true; this.onshow(this as any); }
+        if (this.onshow && this.sendedShow == false && this.isRendered) { this.sendedShow = true; this.onshow(this as any); }
     }
     private sendedShow = false;
     async hide() {
         this.sendedShow = false;
-       
+
         if (this._.isMainComponent) {
             this.controls.forEach(c => { c.hide() })
         } else {
             if (this.isRendered && this._.isHidden == false) {
                 this._.isHidden = true;
-                this.isVisible = false; 
+                this.isVisible = false;
                 this._.methods.addLeaveTransition();
-                await this._.methods.waitTransition('leave', () => { 
+                await this._.methods.waitTransition('leave', () => {
                     if (!this.parent || !this.parent.element) {
                         document.body.replaceChild(this._.placeholder, this.element);
                     } else if (this.element.parentNode != undefined) {
@@ -1236,13 +1298,13 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
             } else {
                 this._.replacedHidden = true;
                 this._.isHidden = true;
-                this.isVisible = false; 
+                this.isVisible = false;
                 this.element.parentNode?.replaceChild(this._.placeholder, this.element);
             }
 
         }
         if (this.onupdated) this.onupdated(this as any, { data: this.model, field: '', source: 'hidding' })
-        if (this.onhide) this.onhide(this as any);
+        if (this.onhide && this.isRendered) this.onhide(this as any);
     }
 
     signal(eventName: string | symbol, cb: (...args: any[]) => any, ...initialValues: any[]) {
@@ -1287,7 +1349,7 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
         }
     }
 
-    addHandler(event: string, callback: (e: Event, sender: IControl<ElementType, any, any>) => any): IControl<ElementType, any, any> {
+    addHandler(event: string, callback: (e: Event | UIEvent | any, sender: IControl<ElementType, any, any>) => any): IControl<ElementType, any, any> {
         if (this.element === null || this.element === undefined) {
             return this as any
         }
@@ -1557,6 +1619,13 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
             }
         }
         return result;
+    }
+    getFirstElement(): IControl<any, any, any> {
+        if (!(this.element instanceof Text) && !(this.element instanceof Comment)) {
+            return this;
+        } else {
+            return this.parent.getFirstElement();
+        }
     }
     setup?(sender: caller);
     initializeComponent?(sender: caller): void;

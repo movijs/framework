@@ -97,6 +97,7 @@ export class Router implements IRouter {
                     if (!found) {
                         self.manager.getNotFound();
                     }  
+                    
                     self.navigate(p, bypas);
                 });
                

@@ -52,9 +52,10 @@ export const globals: any = (typeof self === 'object' ? self : typeof global ===
 let nodeProcess: INodeProcess | undefined = undefined;
 if (typeof globals.movijs !== 'undefined' && typeof globals.movijs.process !== 'undefined') { 
 	nodeProcess = globals.movijs.process;
-} else if (typeof process !== 'undefined') { 
-	nodeProcess = process;
 }
+// else if (typeof process !== 'undefined') { 
+// 	nodeProcess = process;
+// }
 
 const isElectronProcess = typeof nodeProcess?.versions?.electron === 'string';
 const isElectronRenderer = isElectronProcess && nodeProcess?.type === 'renderer';

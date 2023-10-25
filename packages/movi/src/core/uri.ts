@@ -1,9 +1,9 @@
 // import { CharCode } from 'vs/base/common/charCode';
-  import { MarshalledId } from './MarshalledId';
+import { MarshalledId } from './MarshalledId';
 import * as paths from './path';
 import { CharCode } from './charCode';
-import { isWindows } from './platform';
-
+//import { isWindows } from './platform';
+var isWindows = false;
 const _schemePattern = /^\w[\w\d+.-]*$/;
 const _singleSlashStart = /^\//;
 const _doubleSlashStart = /^\/\//;

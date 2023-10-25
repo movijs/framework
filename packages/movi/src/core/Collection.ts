@@ -2,6 +2,7 @@ export class Collection<T extends Object> extends Array {
     public ItemAdded?: (i: T) => void;
     public ItemAddedBefore?: (i: T) => void;
     public ItemSplice?: (start: number, i: T) => void;
+    public onItemRemoved?: (item: T, index: number) => void
     public _map: Set<T> = new Set<T>();
     public add(item: T): number {
         this._map.add(item);
@@ -37,26 +38,30 @@ export class Collection<T extends Object> extends Array {
         this._map.delete(item);
         var index = this.indexOf(item);
         this.splice(index, 1);
+        this.onItemRemoved && this.onItemRemoved(item, index);
     }
 
     public item(key: T): T {
         return key;
-    } 
-   
+    }
+
     public has(item: T) {
         return this._map.has(item);
     }
 
     public clear() {
+        var index = 0;
+        this.onItemRemoved && this._map.forEach((item) => {
+            this.onItemRemoved && this.onItemRemoved(item, index);
+            index++
+        })
         this.splice(0);
         this._map.clear();
     }
 
     public itemIndex(index: number): T {
         return this[index];
-    }
-
-
+    } 
 }
 
 export class KeyValueItem {

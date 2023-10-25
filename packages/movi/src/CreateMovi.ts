@@ -4,7 +4,7 @@ import { ApplicationService } from "./ApplicationService";
 import { Component } from "./Component";
 import { NavigateEventArgs } from "./core";
 import { RouterView } from "./RouterView";
-import { browser } from "./core";
+// import { browser } from "./core";
 export class CreateMoviApp implements IMoviApp {
     context: IApplicationService = ApplicationService.current;
 
@@ -35,7 +35,7 @@ export class CreateMoviApp implements IMoviApp {
         if (this.ServiceConfiguration) this.ServiceConfiguration(ApplicationService.current.services);
         if (this.offline) window.addEventListener("offline", (e) => { this.offline && this.offline(this, e) })
         if (this.online) window.addEventListener("online", (e) => { this.online && this.online(this, e) })
-        this.onfullscreen && browser.onDidChangeFullscreen(i => { this.onfullscreen &&  this.onfullscreen(i) })
+        //this.onfullscreen && browser.onDidChangeFullscreen(i => { this.onfullscreen &&  this.onfullscreen(i) })
 
     }
     private async CreateObject(prm: any) {

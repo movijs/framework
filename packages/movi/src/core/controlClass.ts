@@ -1,14 +1,14 @@
 import { KeyValueItem, toKebab } from ".";
 import { IAttribute, IClass, IControl } from "../abstractions";
 
-export class controlClass<ElementType extends Element | HTMLElement | Text | DocumentFragment | Comment> implements IClass<IControl<ElementType,any,any>> {
-    private _parent: IControl<ElementType,any,any>;
-    constructor(parent: IControl<ElementType,any,any>) {
+export class controlClass<ElementType extends Element | HTMLElement | Text | DocumentFragment | Comment> implements IClass<IControl<ElementType, any, any>> {
+    private _parent: IControl<ElementType, any, any>;
+    constructor(parent: IControl<ElementType, any, any>) {
         this._parent = parent;
     }
 
     oldMapper = new Map();
-    add(values: string | any[] | {} | Function): IControl<ElementType,any,any> {
+    add(values: string | any[] | {} | Function): IControl<ElementType, any, any> {
         var classNames = values;
         if (typeof classNames === 'function') {
             var val = classNames();
@@ -171,7 +171,7 @@ export class controlClass<ElementType extends Element | HTMLElement | Text | Doc
                                 c.toString().trim().split(" ").forEach(cls => {
                                     cls.toString().trim().length > 0 && (this._parent.element as HTMLElement).classList.remove(cls.toString().trim())
                                 })
-                            } 
+                            }
                         } catch (error) {
 
                         }
@@ -202,21 +202,33 @@ export class controlClass<ElementType extends Element | HTMLElement | Text | Doc
                             this._parent.element instanceof Element) {
                             var classvalue = classNames[c]();
 
-                            try {
-                                if (oldValue) {
-                                    oldValue.toString().trim().split(" ").forEach(cls => {
-                                        cls.toString().trim().length > 0 && (this._parent.element as HTMLElement).classList.remove(cls.toString().trim())
+                            if (typeof classvalue == 'boolean') {
+                                if (c != '' && c.toString().trim() != '') {
+                                    if (classvalue) {
+                                        (this._parent.element as HTMLElement).classList.remove(c.toString().trim())
+                                    } else {
+                                        (this._parent.element as HTMLElement).classList.add(c.toString().trim())
+                                    }
+                                }
+
+                            } else {
+                                try {
+                                    if (oldValue) {
+                                        oldValue.toString().trim().split(" ").forEach(cls => {
+                                            cls.toString().trim().length > 0 && (this._parent.element as HTMLElement).classList.remove(cls.toString().trim())
+                                        })
+                                    } 
+                                } catch (error) {
+
+                                }
+                                if (classvalue) {
+                                    classvalue.toString().trim().split(" ").forEach(cls => {
+                                        cls.toString().trim().length > 0 && (this._parent.element as HTMLElement).classList.add(cls.toString().trim())
                                     })
                                 }
 
-                            } catch (error) {
+                            }
 
-                            }
-                            if (classvalue) {
-                                classvalue.toString().trim().split(" ").forEach(cls => {
-                                    cls.toString().trim().length > 0 && (this._parent.element as HTMLElement).classList.add(cls.toString().trim())
-                                })
-                            }
 
                             oldValue = classvalue;
                             // if (c.toString().trim() !== '') {
@@ -244,7 +256,7 @@ export class controlClass<ElementType extends Element | HTMLElement | Text | Doc
         }
         return this._parent;
     }
-    remove(classNames: string | string[]): IControl<ElementType,any,any> {
+    remove(classNames: string | string[]): IControl<ElementType, any, any> {
 
         if (Array.isArray(classNames)) {
             classNames.forEach(cn => {

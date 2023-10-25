@@ -70,10 +70,10 @@ export default class Scanner {
                     currentType = 'defaultValue';
                     break;
 
-                case CharacterCodes.question: 
+                case CharacterCodes.question:
                     if (currentToken) {
                         currentToken.isOptinal = true;
-                    } 
+                    }
                     break;
                 default:
                     if (currentToken) {
@@ -110,7 +110,7 @@ export default class Scanner {
     }
     private filterHtml(val: any) {
         var el = document.createElement("div");
-        el.innerHTML = val;
+        el.innerHTML = val.replaceAll("<[^>]*>", " ").replaceAll("\\s+", " ").trim();
         return el.innerText;
     }
     public parameters = {};

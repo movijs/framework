@@ -7,8 +7,8 @@ import { Dictionary, routeType } from "./core";
 import { RouteManager } from "./Router/RouteManager";
 import { ServiceManager } from "./ServiceManager";
 import { reactive, effect } from "./Reactive";
-import * as Platform from "./core/platform"; 
-import * as Browser from "./core/Browser"; 
+// import * as Platform from "./core/platform"; 
+// import * as Browser from "./core/Browser"; 
 
 const AppWatch = new Map<any, any>();
 const AppWatchKeys = new Dictionary<string | symbol | any, Set<any>>();
@@ -25,8 +25,8 @@ export class MoviApplicationService implements IApplicationService {
     public ControlCollection: WeakMap<any, any> = new WeakMap();
     public Directives = new Set<any>();
     public starters = new Set<Function>();
-    public platform: typeof Platform = Platform;
-    public browser:typeof Browser = Browser;
+    // public platform: typeof Platform = Platform;
+    // public browser:typeof Browser = Browser;
     public ModelSettings: IModelSettings = { PageSize: 25 }; 
     public state = this.useModel({});
     public GarbageCollection = {

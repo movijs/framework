@@ -26,6 +26,7 @@ export * from "./ComponentBase";
 export * from "./Component";
 export * from "./RouterView";
 export * from "./RouterLink";
+export * from "./slot";
 export * from "./Frame";
 export * from "./Router/Router";
 export * from "./ApplicationService";

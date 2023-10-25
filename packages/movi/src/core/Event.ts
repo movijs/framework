@@ -685,27 +685,7 @@ const forEachListener = <T>(listeners: ListenerOrListeners<T>, fn: (c: ListenerC
 	}
 };
 
-/**
- * The Emitter can be used to expose an Event to the public
- * to fire it from the insides.
- * Sample:
-	class Document {
-
-		private readonly _onDidChange = new Emitter<(value:string)=>any>();
-
-		public onDidChange = this._onDidChange.event;
-
-		// getter-style
-		// get onDidChange(): Event<(value:string)=>any> {
-		// 	return this._onDidChange.event;
-		// }
-
-		private _doIt() {
-			//...
-			this._onDidChange.fire(value);
-		}
-	}
- */
+ 
 export class Emitter<T> {
 
 	private readonly _options?: EmitterOptions;

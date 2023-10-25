@@ -48,6 +48,7 @@ import { List } from "../core/List";
 import { ElementTypes } from "../core/controlAttribute";
 import { controlStyle } from "../core/controlStyle";
 import { Directive } from "../directive";
+import { CommonEventHandlers } from "./CommonEventHandlers";
 import { IApplicationService } from "./IApplicationService";
 import { IClass } from "./IAttribute";
 
@@ -56,7 +57,9 @@ export interface baseeventargs {
     field: string,
     source: string
 }
-export interface ControlProps<caller, Props> {
+
+
+export interface ControlProps<caller, Props> extends CommonEventHandlers {
     props?: Props;
     settings?: any;
     extend?: any;
@@ -141,6 +144,7 @@ export interface IControl<ElementType extends ElementTypes, Props, caller> exten
     isFragment: boolean;
     keepAlive: boolean;
     slots?: IControl<any, any, any>[];
+    name?: string;
     //state: UnwrapNestedRefs<any>; 
     reload?: (() => caller) | undefined;
     context: IApplicationService;
@@ -157,7 +161,7 @@ export interface IControl<ElementType extends ElementTypes, Props, caller> exten
     on(event: baseemits, callback: (sender, ...args) => void, domEvent: boolean);
     off(event: baseemits, callback: (sender, ...args) => void, domEvent: boolean);
     invoke(event: baseemits, ...args);
-    addHandler(event: string, callback: (e: Event, sender: IControl<ElementType, Props, caller>) => any): IControl<ElementType, Props, caller>;
+    addHandler(event: string, callback: (e: Event|UIEvent|any, sender: IControl<ElementType, Props, caller>) => any): IControl<ElementType, Props, caller>;
     removeHandler(event: string): IControl<ElementType, Props, caller>;
     attr: controlAttribute<ElementType>;
     class: IClass<ElementType>;
@@ -177,6 +181,7 @@ export interface IControl<ElementType extends ElementTypes, Props, caller> exten
     onhide?(sender: caller): void;
     onChildAdded?(sender: this, child: any, index: number);
     onChildRemoved?(sender: this, child: any);
+    getFirstElement():IControl<any,any,any> ;
     options?: {
         authorize?: boolean,
         headers?: Object,

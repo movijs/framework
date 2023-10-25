@@ -52,14 +52,16 @@ import { CreateLocalElement, ElementTypes } from "./core";
 // }
 
 
+export interface BaseProp<T> extends ControlProps<any, T> { }
+
 export class Component<ElementType extends ElementTypes = HTMLElement, StateType = {}> extends MoviComponent<ElementType, StateType, Component<ElementType, StateType>> {
-    constructor(options: ControlProps<Component<ElementType, StateType>, StateType>)
+    constructor(options: BaseProp<StateType> | ControlProps<Component<ElementType, StateType>, StateType>)
     constructor(tag: ElementType | string)
-    constructor(tag: ElementType | string, options: ControlProps<Component<ElementType, StateType>, StateType>)
+    constructor(tag: ElementType | string, options: BaseProp<StateType> | ControlProps<Component<ElementType, StateType>, StateType>)
     constructor() {
         var tag;
         var props;
-        var args: ControlProps<Component<ElementType, StateType>, StateType> | undefined = undefined;
+        var args: ControlProps<Component<ElementType, StateType>, StateType> | BaseProp<StateType> | undefined = undefined;
 
         if (tag !== undefined && typeof tag === 'function') {
             var caller = (tag as any)(props);
@@ -100,6 +102,8 @@ export class Component<ElementType extends ElementTypes = HTMLElement, StateType
     view?(): MoviComponent<ElementType, StateType, Component<ElementType, StateType>>;
     elementCreating?(current: any): any;
 }
+
+ 
 
 // export class ComponentDetailed<ElementType extends ElementTypes, StateType, caller extends ComponentDetailed<ElementType, StateType, caller>> extends MoviComponent<ElementType, StateType, ComponentDetailed<ElementType, StateType, caller>> {
 
@@ -163,11 +167,11 @@ export function AsyncContainer(importer, props) {
     if (importer instanceof Promise) {
         result.using(importer, (c: any) => {
             if (c.default) {
-                result.controls.add(resolveElement(c.default, props) as any);    
+                result.controls.add(resolveElement(c.default, props) as any);
             } else {
-                throw new Error("has not found default export.",c); 
+                throw new Error("has not found default export.", c);
             }
-            
+
         })
     }
     return result;
@@ -205,7 +209,7 @@ export function createElement(tag: any, options: any): Component<any, any> {
     } else {
         return resolveElement(tag, options);
     }
-} 
+}
 export function moviFragment(options: any): Component<any, any> {
     // console.error("[MOVIJS]: fragment is not supported. auto convert to div element.")
     // return moviComponent('div', {...options});
@@ -238,7 +242,7 @@ export function moviFragment(options: any): Component<any, any> {
     // // //f.controls.add(moviComponent('div', {}))
     // // console.error('fragment',f);
     // return f;
-} 
+}
 function resolveElement(tag, props): Component<any, any> {
 
     var controller: any;
@@ -272,20 +276,20 @@ function resolveElement(tag, props): Component<any, any> {
             } else if (typeof getFn === 'object') {
                 controller = new Component({ ...getFn, ...Ctx, ...props });
             } else {
-                var ntag; 
+                var ntag;
                 try {
                     if (tag && Object.getPrototypeOf(tag) && Object.getPrototypeOf(tag).constructor) {
-                        ntag = new tag({...props });
+                        ntag = new tag({ ...props });
                     } else {
                         ntag = tag(props);
                     }
                 } catch (error) {
                     ntag = tag(props);
-                } 
+                }
 
                 if (ntag instanceof Promise) {
                     controller = AsyncContainer(ntag, props);
-                } else if (ntag instanceof Component) { 
+                } else if (ntag instanceof Component) {
                     return ntag;
                     //controller = new Component({ view: () => ntag, ...props })
                 } else {
@@ -295,6 +299,7 @@ function resolveElement(tag, props): Component<any, any> {
             }
 
         } catch (error) {
+            console.error(error);
             controller = tag(props);
             // if (!controller['bind']) {
             //     controller = Object.assign(controller, new Component(props));
