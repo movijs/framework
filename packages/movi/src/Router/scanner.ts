@@ -109,9 +109,7 @@ export default class Scanner {
         return new RegExp(rtx, "g");
     }
     private filterHtml(val: any) {
-        var el = document.createElement("div");
-        el.innerHTML = val.replaceAll("<[^>]*>", " ").replaceAll("\\s+", " ").trim();
-        return el.innerText;
+        return val.replaceAll("<[^>]*>", " ").replaceAll("\\s+", " ").trim();
     }
     public parameters = {};
     public exist(input: string): boolean {
