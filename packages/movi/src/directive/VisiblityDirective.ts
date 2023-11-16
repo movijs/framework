@@ -1,24 +1,25 @@
 import { IControl } from "../abstractions";
 import { IDirective } from "../abstractions/IDirective";
 import { CheckType, DirectiveBindingType } from "../abstractions/DirectiveBindingTypes";
-import Bindable from "../Reactive/Bindable"; 
+import Bindable from "../Reactive/Bindable";
 import { IFxMapper } from "../Reactive/ReactiveEngine";
+import { ApplicationService } from "..";
 export class VisibilitySettings {
     public Property!: object;
     public FieldName!: string;
     public callback!: () => any;
-    public type:DirectiveBindingType = "function";
-    public oldValue: any; 
+    public type: DirectiveBindingType = "function";
+    public oldValue: any;
 
 }
 
 export class VisibilityDirective implements IDirective<VisibilitySettings>{
     id: any = null as any;
-    isArray: boolean = false; 
-    Bindabler?: Bindable | undefined; 
+    isArray: boolean = false;
+    Bindabler?: Bindable | undefined;
     FxMapper: IFxMapper = null as any;
-    private _settings: VisibilitySettings= null as any;
-    private _source: IControl<any,any,any>= null as any;
+    private _settings: VisibilitySettings = null as any;
+    private _source: IControl<any, any, any> = null as any;
     constructor() {
         this.getData = this.getData.bind(this);
         this.init = this.init.bind(this);
@@ -27,17 +28,18 @@ export class VisibilityDirective implements IDirective<VisibilitySettings>{
         this.removeDom = this.removeDom.bind(this);
         this.start = this.start.bind(this);
         new Bindable(this);
-       
+
     }
     getData() {
         if (this._settings == null) { return }
-        if (this._source.onupdating) this._source.onupdating(this._source, {data:this._settings.Property,field:this._settings.FieldName, source:'visiblity'});
+        if (!this._source || this._source.isDisposed) { return }
+        if (this._source.onupdating) this._source.onupdating(this._source, { data: this._settings.Property, field: this._settings.FieldName, source: 'visiblity' });
         var nValue = CheckType(this._settings);
-        if (this._settings.oldValue === nValue) {
-            return;
-        }
+        // if (this._settings.oldValue === nValue) {
+        //     return;
+        // }
 
-        this._settings.oldValue= nValue; 
+        this._settings.oldValue = nValue;
         var r = false;
 
         if (typeof this._settings.oldValue === 'number') {
@@ -66,25 +68,29 @@ export class VisibilityDirective implements IDirective<VisibilitySettings>{
             }
         } else if (this._settings.oldValue == null) {
             r = false;
-        } 
-        if (r === true) {
-            this._source.show(); 
-        } else {
-            this._source.hide(); 
-        }   
+        }
 
-        if (this._source.onupdated) this._source.onupdated(this._source, {data:this._settings.Property,field:this._settings.FieldName, source:'visibilty'});
+        if (ApplicationService.current?.Options?.onReactiveEffectRun) {
+            ApplicationService.current.Options.onReactiveEffectRun('binding.display.changed', r, this)
+        }
+        if (r == true) {
+            this._source.show();
+        } else {
+            this._source.hide();
+        }
+
+        if (this._source.onupdated) this._source.onupdated(this._source, { data: this._settings.Property, field: this._settings.FieldName, source: 'visibilty' });
     }
     start() {
-       
+
     }
 
     update() {
 
     }
     setupCompleted = false;
-    awaiableSetup: boolean=false;
-    setup(target, key) { 
+    awaiableSetup: boolean = false;
+    setup(target, key) {
         // if (!this.setupCompleted) {
         //     if (this._source.isDisposed) {
         //         if (this.fx) {
@@ -101,7 +107,7 @@ export class VisibilityDirective implements IDirective<VisibilitySettings>{
         //     this.setupCompleted = true;
         // }
     }
-    init(settings: VisibilitySettings, Source: IControl<any,any,any>): void {
+    init(settings: VisibilitySettings, Source: IControl<any, any, any>): void {
         if (settings == null) { return }
         this._settings = settings;
         this._source = Source;
@@ -114,14 +120,14 @@ export class VisibilityDirective implements IDirective<VisibilitySettings>{
         //this.fx.run();
     }
     disposed: boolean = false;
-    async dispose(settings: VisibilitySettings, Source: IControl<any,any,any>)  {
+    async dispose(settings: VisibilitySettings, Source: IControl<any, any, any>) {
         this.Bindabler && this.Bindabler.fxm.dispose();
         this.Bindabler = undefined;
         this._source = null as any;
         this._settings = null as any;
         this.disposed = true;
     }
-    removeDom() { 
+    removeDom() {
         if (this._source && !this._source.isDisposed) {
             this._source.dispose();
         }

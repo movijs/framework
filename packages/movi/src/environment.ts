@@ -34,10 +34,12 @@ export function CreateObject(objectRef: any, props: any, isPage: boolean = false
 
 export class system {
     public static GC(item: any): any {
+        
         Object.keys(item).forEach(key => {
             item[key] = null;
             delete item[key];
-        })
+        });
+        Object.setPrototypeOf(item, null);
         return null;
     }
 }

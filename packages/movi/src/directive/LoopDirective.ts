@@ -4,7 +4,7 @@ import { CheckType, DirectiveBindingType } from "../abstractions/DirectiveBindin
 import Bindable from "../Reactive/Bindable";
 import { getRaw, pauseTracking, resetTracking } from "../Reactive/common";
 import { IFxMapper } from "../Reactive/ReactiveEngine";
-import { ApplicationService } from "..";
+import { ApplicationService, Component, Lazy } from "..";
 
 
 export class LoopDirectiveSettings {
@@ -48,6 +48,7 @@ export class LoopDirective implements IDirective<LoopDirectiveSettings>{
     getData() {
 
         if (this._settings == null) { return }
+        if (!this._source || this._source.isDisposed) { return }
         var items = CheckType(this._settings);
         if (typeof items === "function") {
             items = items();
@@ -55,6 +56,10 @@ export class LoopDirective implements IDirective<LoopDirectiveSettings>{
         // if (this._settings.oldValue === items && this._settings.oldValue.length === items.length) {
         //     return;
         // }
+
+        if (ApplicationService.current?.Options?.onReactiveEffectRun) {
+            ApplicationService.current.Options.onReactiveEffectRun('binding.loop.changed', this)
+        }
 
         if (this.inits) {
             if (this._source.onupdating) this._source.onupdating(this._source, { data: this._settings.Property, field: this._settings.FieldName, source: 'loop' });
@@ -80,7 +85,7 @@ export class LoopDirective implements IDirective<LoopDirectiveSettings>{
                         Promise.resolve().then(t => {
                             paged(current + this.pageCount)
                         })
-                    }, { timeout: 50 })
+                    }, { timeout: 0 })
                 }
             }
         }
@@ -119,7 +124,7 @@ export class LoopDirective implements IDirective<LoopDirectiveSettings>{
 
     }
     async updateAsync(items) {
-         
+
         var settings = this._settings;
         var Source = this._source;
 
@@ -195,6 +200,7 @@ export class LoopDirective implements IDirective<LoopDirectiveSettings>{
                             if (elm) {
                                 elm['index'] = index + current;
                                 elm['isStart'] = isStart;
+                                elm.options.settings["__loop__item__"]
                                 Source.controls.insert(index + current, elm);
                                 Source.parent && Source.parent.onChildAdded && Source.parent.onChildAdded(Source.parent, elm, index + current);
                             }
@@ -231,6 +237,7 @@ export class LoopDirective implements IDirective<LoopDirectiveSettings>{
                         if (elm) {
                             elm['index'] = index;
                             elm['isStart'] = isStart;
+                            elm.options.settings["__loop__item__"] = true;
                             Source.controls.insert(index, elm);
                             Source.parent && Source.parent.onChildAdded && Source.parent.onChildAdded(Source.parent, elm, index);
                         }
@@ -341,6 +348,9 @@ export class LoopDirective implements IDirective<LoopDirectiveSettings>{
     build(data: any, index: any) {
 
         var elm = this._settings && this._settings.render ? this._settings.render(data, index) : null;
+        if (elm instanceof Promise) {
+            elm = Lazy(() => elm as any)
+        }
         // console.error('elm', elm)
 
         // var el = <any>[];

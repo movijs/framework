@@ -57,7 +57,7 @@ export class Router implements IRouter {
 
         if (this.prev !== uri) {
 
-            var fx = this.manager.GetRouteDetails(uri);  
+            var fx = this.manager.GetRouteDetailsFromString(uri);  
             var ea = new NavigateEventArgs();
             ea.currentPage = ApplicationService.current['lastPage'] as unknown as IControl<any,any,any>;
             ea.route = {
@@ -76,8 +76,9 @@ export class Router implements IRouter {
                     p = self.manager.routeNames.get(ea.redirect).path;
                 }
 
+               
+                var nxt = self.manager.GetRouteDetailsFromString(p);
 
-                var nxt = self.manager.GetRouteDetails(p);
                 var route = {
                     path: p,//self.manager.router.getFragment(),
                     extend: nxt.extend,
@@ -98,9 +99,9 @@ export class Router implements IRouter {
                         self.manager.getNotFound();
                     }  
                     
-                    self.navigate(p, bypas);
+                  
                 });
-               
+                self.navigate(p, bypas);
                 ApplicationService.current.internal.notify('routeChanged') 
 
             }
@@ -120,6 +121,7 @@ export class Router implements IRouter {
     public navigate(url: string, bypas: boolean = false) {
         this.scrollState.x = window.scrollX;
         this.scrollState.y = window.scrollY;
+
         if (this.mode === "history") {
             if (window.history != null) {
                 if (!url.startsWith("/")) {
@@ -136,6 +138,7 @@ export class Router implements IRouter {
                 if (this.navigated) this.navigated.call(this)
             }
         }
+      
     }
     public HandlePopChange() {
         this.trigger(this.CurrentPage, true);

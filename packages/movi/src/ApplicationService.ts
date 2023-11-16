@@ -1,5 +1,5 @@
 import { ClearModel as clsModel } from "./Reactive";
-import { IControl, IModelSettings, IServiceManager } from "./abstractions";
+import { IConfigurationOptions, IControl, IModelSettings, IServiceManager } from "./abstractions";
 import { IApplicationService, IDisposable, SysInternalNotification } from "./abstractions/IApplicationService";
 import { IRouteManager } from "./abstractions/IRouteManager";
 import { Component } from "./Component";
@@ -15,7 +15,11 @@ const AppWatchKeys = new Dictionary<string | symbol | any, Set<any>>();
 const latestAppValue = new Dictionary<string | symbol | any, any>();
 
 export const ApplicationMiddleware = new Set<(next: () => any, e: IControl<any, any, any>) => void>();
+
+
+ 
 export class MoviApplicationService implements IApplicationService {
+    public Options: IConfigurationOptions|any;
     public services: IServiceManager = new ServiceManager();
     public extensions: Set<any> = new Set();
     public RouteManager: IRouteManager = new RouteManager();
@@ -165,6 +169,7 @@ export class MoviApplicationService implements IApplicationService {
             this.starters.add(settings);            
         }
     }
+ 
 }
 
 export class ApplicationService {

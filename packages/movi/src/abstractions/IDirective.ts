@@ -14,10 +14,8 @@ export interface IDirective<SettingsModel> {
     Bindabler?: Bindable | undefined;
     dispose(settings?: any, Source?: IControl<any,any,any>); 
     bind?(prop: any, key: string)
-    bind?(callback: () => void)
-
-    name?: string
-    
+    bind?(callback: () => void) 
+    name?: string 
     Configuration?:{
         Property: any,
         FieldName:  string,

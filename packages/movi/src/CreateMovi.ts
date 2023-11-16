@@ -1,4 +1,4 @@
-import { IConfigurationOptions, IModelSettings, IMoviApp, IServiceManager } from "./abstractions";
+import { IConfigurationOptions, IControl, IModelSettings, IMoviApp, IServiceManager } from "./abstractions";
 import { IApplicationService } from "./abstractions/IApplicationService";
 import { ApplicationService } from "./ApplicationService";
 import { Component } from "./Component";
@@ -10,25 +10,28 @@ export class CreateMoviApp implements IMoviApp {
 
     public use(module: any) {
         ApplicationService.current.use(module);
-        
+
     };
     Services?: IServiceManager | undefined;
     public offline?(sender: IMoviApp, e: Event) { }
     public online?(sender: IMoviApp, e: Event) { }
-    public onfullscreen?(isFullscreen:boolean) { }
+    public onfullscreen?(isFullscreen: boolean) { }
     public Configuration?(options: IConfigurationOptions) { }
     public ServiceConfiguration?(services: IServiceManager) { }
     public Navigate?(e: NavigateEventArgs) { }
+    
     public constructor(options?: IMoviApp) {
         if (options) {
             Object.assign(this, options);
         }
-        if (this.Configuration) { this.Configuration = this.Configuration.bind(this); }
-        if (this.Configuration) this.Configuration({
+        this.context.Options = {
             Route: ApplicationService.current.RouteManager,
             middleware: ApplicationService.current.middleware,
             ModelSettings: ApplicationService.current.ModelSettings
-        });
+        }
+        if (this.Configuration) { this.Configuration = this.Configuration.bind(this); }
+        if (this.Configuration) this.Configuration(this.context.Options);
+
         ApplicationService.current.starters.forEach(f => {
             f(this.context);
         })
@@ -98,3 +101,4 @@ export class CreateMoviApp implements IMoviApp {
     }
 
 }
+

@@ -1,5 +1,5 @@
 
-import { ApplicationService, Component, MoviComponent } from "../";
+import { ApplicationService, Component, Frame, MoviComponent } from "../";
 import { IControl } from "../abstractions";
 import { EffectDirective, EffectDirectiveSettings } from "./effectDirective";
 import { HtmlDirective, HtmlDirectiveSettings } from "./HtmlDirective";
@@ -287,9 +287,9 @@ export class Directive {
         return this;
     }
 
-    public loop(prop: any, key: string, itemTemplate: (data: any) => IControl<any, any, any>): Directive
-    public loop(callback: () => void, itemTemplate: (data: any) => IControl<any, any, any>): Directive
-    public loop(): Directive {
+    public loop(prop: any, key: string, itemTemplate: (data: any) => IControl<any, any, any>): Component<any,any>
+    public loop(callback: () => void, itemTemplate: (data: any) => IControl<any, any, any>): Component<any,any>
+    public loop(): Component<any,any> {
         this.Configuration.LoopSettings = new LoopDirectiveSettings();
         this.loopDirective = new LoopDirective();
 
@@ -311,13 +311,13 @@ export class Directive {
                 this.Configuration.LoopSettings.type = "function";
             }
         }
-        var fr = new Component({});
+        var fr = new Component(document.createComment('map'),{});
         this.Configuration.LoopSettings.fragment = fr;
         this.owner.controls.add(fr);
         if (this.owner.isRendered) {
             if (this.Configuration.LoopSettings && this.loopDirective) this.loopDirective.init(this.Configuration.LoopSettings, fr);
         }
-        return this;
+        return fr;
     }
     public effect(callback: () => any): Directive {
 
@@ -466,7 +466,7 @@ export class Directive {
             Directive.init(Settings, this.owner);
         }
         */
-        var fr = new Component({});
+        var fr = new Frame();// new Component(document.createComment('logic'),{});
         this.owner.controls.add(fr);
 
         var Settings = new LogicDirectiveSettings();
@@ -476,10 +476,10 @@ export class Directive {
         var Directive = new LogicDirective(fr);
         this.logicDirectives.set(Settings, Directive);
         if (this.owner.isRendered) {
-            Directive.init(Settings, this.owner);
+            Directive.init(Settings, fr);
         }
 
-
+        
         // this.Configuration.LogicDirectiveSettings = new LogicDirectiveSettings();
         // this.logicDirective = new LogicDirective(fr);
         // this.Configuration.LogicDirectiveSettings.logicalFn = state;

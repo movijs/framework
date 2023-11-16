@@ -1,6 +1,6 @@
 // import { CharCode } from 'vs/base/common/charCode';
 import { MarshalledId } from './MarshalledId';
-import * as paths from './path';
+//import * as paths from './path';
 import { CharCode } from './charCode';
 //import { isWindows } from './platform';
 var isWindows = false;
@@ -150,6 +150,36 @@ export class URI implements UriComponents {
         return new Uri(scheme, authority, path, query, fragment);
     }
 
+    // static urlParse(value: string): URI {
+
+    //     return new Uri(_empty);
+    // }
+
+    public static UrlParse(path: string) {
+        if (typeof path !== "string") {
+            return "";
+        }
+        var schema = "";
+        if (path.startsWith('http://')) {
+            schema = "http://";
+        } else if (path.startsWith('https://')) {
+            schema = "https://";
+        }
+        path = path.slice(schema.length);
+
+        var tt = path.toString().replace(/\/$/g, "").replace(/^\//g, "").replace(/\/+/g, "/");
+        if (!tt.startsWith("/")) {
+            tt = "/" + tt;
+        }
+        if (!tt.startsWith("/")) {
+            tt = "/" + tt;
+        }
+        if (tt.endsWith("/")) {
+            tt = tt.slice(0, tt.length - 1);
+        }
+        return schema + tt;
+    }
+
     static parse(value: string, _strict: boolean = false): URI {
         const match = _regexp.exec(value);
         if (!match) {
@@ -196,18 +226,18 @@ export class URI implements UriComponents {
         );
         return result;
     }
-    static joinPath(uri: URI, ...pathFragment: string[]): URI {
-        if (!uri.path) {
-            throw new Error(`[UriError]: cannot call joinPath on URI without path`);
-        }
-        let newPath: string;
-        if (isWindows && uri.scheme === 'file') {
-            newPath = URI.file(paths.win32.join(uriToFsPath(uri, true), ...pathFragment)).path;
-        } else {
-            newPath = paths.posix.join(uri.path, ...pathFragment);
-        }
-        return uri.with({ path: newPath });
-    }
+    // static joinPath(uri: URI, ...pathFragment: string[]): URI {
+    //     if (!uri.path) {
+    //         throw new Error(`[UriError]: cannot call joinPath on URI without path`);
+    //     }
+    //     let newPath: string;
+    //     if (isWindows && uri.scheme === 'file') {
+    //         newPath = URI.file(paths.win32.join(uriToFsPath(uri, true), ...pathFragment)).path;
+    //     } else {
+    //         newPath = paths.posix.join(uri.path, ...pathFragment);
+    //     }
+    //     return uri.with({ path: newPath });
+    // }
     toString(skipEncoding: boolean = false): string {
         return _asFormatted(this, skipEncoding);
     }

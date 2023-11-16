@@ -9,7 +9,7 @@ export function createGetter(engine: ReactiveEngine) {
         if (p === Flags.IS_REACTIVE) { return !engine.isReadonly }
         else if (p === Flags.IS_READONLY) { return engine.isReadonly }
         else if (p === Flags.IS_SUPERFICIAL) { return engine.superficial }
-        else if (p === Flags.RAW && receiver === engine.ReactiveMap.get(target)) { return target }
+        else if (p === Flags.RAW && receiver === engine.ReactiveMap().get(target)) { return target }
         if (p === Flags.GET_SETUP) { return target }
          
         const modelIsArray = Array.isArray(target)

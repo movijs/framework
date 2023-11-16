@@ -6,6 +6,7 @@ import { CheckType, DirectiveBindingType } from "../abstractions/DirectiveBindin
 import Bindable from "../Reactive/Bindable";
 import { IFxMapper } from "../Reactive/ReactiveEngine";
 import { Component } from "../Component";
+import { ApplicationService, Frame } from "..";
 
 export class LogicDirectiveSettings {
     public Property!: object;
@@ -23,9 +24,9 @@ export class LogicDirective implements IDirective<LogicDirectiveSettings>{
     Bindabler?: Bindable | undefined;
     FxMapper: IFxMapper = null as any;
     private _settings: LogicDirectiveSettings = null as any;
-    private _source: IControl<any,any,any> = null as any;
-    private _prevControl: IControl<any,any,any> | undefined = undefined;
-    public ph: IControl<any,any,any> | undefined = undefined;
+    private _source: Frame = null as any;
+    private _prevControl: IControl<any, any, any> | undefined = undefined;
+    public ph: IControl<any, any, any> | undefined = undefined;
     constructor(c) {
         this.ph = c;
         this._source = c;
@@ -38,9 +39,46 @@ export class LogicDirective implements IDirective<LogicDirectiveSettings>{
         new Bindable(this);
     }
     getData() {
-        this.update();
-        // if (this._settings == null) { return }
-        // var val = this._settings.logicalFn();
+        // this.update();
+        if (this._settings == null) { return }
+        if (!this._source || this._source.isDisposed) { return }
+        var val = this._settings.logicalFn();
+        if (typeof val === 'function') {
+            val = val();
+        }
+
+        if (val != this.oldValue) {
+            this.oldValue = val;
+            // var pi = this._source.controls.indexOf(this._prevControl);
+
+            // this._prevControl && !this._prevControl.isDisposed && this._prevControl instanceof Component && this._prevControl?.dispose();
+            this._prevControl = this._settings.callback(val);
+            //if (pi > -1) {
+                this._source.navigate(this._prevControl as any);
+                // this._source.controls.insert(pi, this._prevControl as any)
+            // } else {
+            //     this._source.navigate(this._prevControl as any);
+            //     //this._source.controls.add(this._prevControl as any)
+            // } 
+        }
+
+        //  var newElement = this._settings.callback(val);
+
+        // if (!newElement.isRendered) { 
+        //     this._source.controls.add(newElement);
+        // } else { 
+        //     newElement.show();
+        // }
+        // // debugger;
+        // this._source.controls.filter(x => x !== newElement).forEach(f => {
+        //     f.hide();
+        // });
+
+        // if (!this._source.controls.find(t=> t == newElement)) {
+        //     this._source.controls.add(newElement);
+        // }
+        // newElement.show();
+
         // if (this._prevControl != null) {
         //     if (typeof val === 'boolean') {
         //         if (val) {
@@ -90,60 +128,75 @@ export class LogicDirective implements IDirective<LogicDirectiveSettings>{
     update() {
 
         if (this._settings == null) { return }
-        if (this._source.onupdating) this._source.onupdating(this._source, {data:this._settings.Property,field:this._settings.FieldName, source:'logical'});
+        if (!this._source || this._source.isDisposed) { return }
+        if (this._source.onupdating) this._source.onupdating(this._source, { data: this._settings.Property, field: this._settings.FieldName, source: 'logical' });
         if (this._source.isDisposed || this._source.element === null) { return }
         var val = this._settings.logicalFn();
         if (typeof val === 'function') {
             val = val();
         }
-        if (this.oldValue != val) { 
-            this.oldValue = val;
-            var newElement = this._settings.callback(val);
-            var index = this._source.controls.indexOf(this._source);
-            if (Array.isArray(this._prevControl)) {
-                this._prevControl.forEach(pc => {
-                    if (pc && !pc.isDisposed) {
-                        pc.dispose();
-                    }
-                })
-            } else {
-                if (this._prevControl && !this._prevControl.isDisposed) { 
-                    this._prevControl.dispose();
-                }
-            }
-            this._prevControl = newElement;
-            this._source.controls.insert(index, newElement);
-        }
 
-        if (this._source.onupdated) this._source.onupdated(this._source, {data:this._settings.Property,field:this._settings.FieldName, source:'logical'});
+        // if (this.oldValue != val) {
+        //     this.oldValue = val;
 
-        // if (typeof val === 'boolean') {
-        //     if (val) {
-        //         var pi = this._source.controls.indexOf(this._prevControl);
-        //         this._prevControl?.dispose();
-        //         this._prevControl = this._settings.callback(val);
-        //         if (this._prevControl === undefined || this._prevControl === null) {
-        //             this._prevControl = new Component(document.createComment(''), {});
+        //     if (val == true) {
+        //         var newElement = this._settings.callback(val);
+        //         var index = this._source.controls.indexOf(this._source);
+        //         if (Array.isArray(this._prevControl)) {
+        //             this._prevControl.forEach(pc => {
+        //                 if (pc && !pc.isDisposed) {
+        //                     pc.dispose();
+        //                 }
+        //             })
+        //         } else {
+        //             if (this._prevControl && !this._prevControl.isDisposed) {
+        //                 this._prevControl.dispose();
+        //             }
         //         }
-        //         this._source.controls.insert(pi, this._prevControl);
+        //         this._prevControl = newElement;
+        //         this._source.controls.insert(index, newElement);
         //     } else {
-        //         var pi = this._source.controls.indexOf(this._prevControl);
-        //         this._prevControl?.dispose();
-        //         this._prevControl = new Component(document.createComment(''), {});
-        //         this._source.controls.insert(pi, this._prevControl);
-        //     }
-        // } else {
-        //     var pi = this._source.controls.indexOf(this._prevControl);
-        //     this._prevControl?.dispose();
-        //     this._prevControl = this._settings.callback(val);
 
-        //     if (this._prevControl === undefined || this._prevControl === null) {
-        //         this._prevControl = new Component(document.createComment(''), {});
         //     }
-        //     this._source.controls.insert(pi, this._prevControl);
+
         // }
 
 
+        if (this.oldValue != val) {
+            this.oldValue = val;
+            if (typeof val === 'boolean') {
+                if (val) {
+                    // var pi = this._source.controls.indexOf(this._prevControl);
+                    // this._prevControl && !this._prevControl.isDisposed && this._prevControl instanceof Component && this._prevControl.hide();
+                    this._prevControl = this._settings.callback(val);
+                    if (this._prevControl === undefined || this._prevControl === null) {
+                        this._prevControl = new Component(document.createComment(''), {});
+                    }
+                    this._source.navigate(this._prevControl);
+                    //this._source.controls.insert(pi, this._prevControl);
+                } else {
+                    // var pi = this._source.controls.indexOf(this._prevControl);
+                    // this._prevControl && !this._prevControl.isDisposed && this._prevControl instanceof Component && this._prevControl?.dispose();
+                    this._prevControl = new Component(document.createComment(''), {});
+                    this._source.navigate(this._prevControl);
+                    //this._source.controls.insert(pi, this._prevControl);
+                }
+            } else {
+                // var pi = this._source.controls.indexOf(this._prevControl);
+                // this._prevControl && !this._prevControl.isDisposed && this._prevControl instanceof Component && this._prevControl.dispose();
+                this._prevControl = this._settings.callback(val);
+
+                if (this._prevControl === undefined || this._prevControl === null) {
+                    this._prevControl = new Component(document.createComment(''), {});
+                }
+                this._source.navigate(this._prevControl);
+                //this._source.controls.insert(pi, this._prevControl);
+            }
+            if (ApplicationService.current?.Options?.onReactiveEffectRun) {
+                ApplicationService.current.Options.onReactiveEffectRun('binding.logic.changed', this)
+            }
+            if (this._source.onupdated) this._source.onupdated(this._source, { data: this._settings.Property, field: this._settings.FieldName, source: 'logical' });
+        }
 
     }
     setupCompleted = false;
@@ -164,7 +217,7 @@ export class LogicDirective implements IDirective<LogicDirectiveSettings>{
         //     this.setupCompleted = true;
         // }
     }
-    init(settings: LogicDirectiveSettings, Source: IControl<any,any,any>): void {
+    init(settings: LogicDirectiveSettings, Source: IControl<any, any, any>): void {
         this._settings = settings;
         //this._source = Source; 
         this.start = this.start.bind(this);
@@ -176,7 +229,7 @@ export class LogicDirective implements IDirective<LogicDirectiveSettings>{
         //this.fx.run();
     }
     disposed: boolean = false;
-    dispose(settings: LogicDirectiveSettings, Source: IControl<any,any,any>) {
+    dispose(settings: LogicDirectiveSettings, Source: IControl<any, any, any>) {
         this.Bindabler && this.Bindabler.fxm.dispose();
         this.Bindabler = undefined;
         this._source = null as any;

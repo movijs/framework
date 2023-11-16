@@ -3,6 +3,7 @@ import { IDirective } from "../abstractions/IDirective";
 import { CheckType, DirectiveBindingType } from "../abstractions/DirectiveBindingTypes";
 import Bindable from "../Reactive/Bindable"; 
 import { IFxMapper } from "../Reactive/ReactiveEngine";
+import { ApplicationService } from "..";
 export class EffectDirectiveSettings {
     public Property!: object;
     public FieldName!: string;
@@ -29,10 +30,15 @@ export class EffectDirective implements IDirective<EffectDirectiveSettings>{
         new Bindable(this); 
     }
     getData() {  
+        if (!this._source || this._source.isDisposed) { return }
+        
         if (this._source.onupdating) this._source.onupdating(this._source, {data:this._settings.Property,field:this._settings.FieldName, source:'effect'});
         if (this._settings && this._settings.callback) {
             var val = (this._settings.callback as any)(this._source);   
         }  
+        if (ApplicationService.current?.Options?.onReactiveEffectRun) {
+            ApplicationService.current.Options.onReactiveEffectRun('binding.effect.changed', this)
+        }
         if (this._source.onupdated) this._source.onupdated(this._source, {data:this._settings.Property,field:this._settings.FieldName, source:'effect'});
     }
     start() { 

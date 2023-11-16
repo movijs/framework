@@ -13,8 +13,7 @@ export function CreateLocalElement<ElementType extends Element | HTMLElement | T
     switch (typeof el) {
 
         case "string":
-
-            if (el === 'svg' || el === 'path' || el === 'g' || el === 'defs' || el === 'polygon' || el === 'linearGradient' || el === 'stop' || isSvg == true) {
+             if (el === 'svg' || el === 'path' || el === 'g' || el === 'defs' || el === 'polygon' || el === 'linearGradient' || el === 'stop' || isSvg == true) {
                 return document.createElementNS('http://www.w3.org/2000/svg', el, {}) as ElementType;
             } else
                 if (el === 'text') {
@@ -63,4 +62,4 @@ export * from "./MarshalledId";
 export * from "./LinkedList";
 export * from "./StopWatch";
 export * from "./keyCodes";
-//export * from "./uri";
+export * from "./uri";

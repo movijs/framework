@@ -61,9 +61,59 @@ export class Collection<T extends Object> extends Array {
 
     public itemIndex(index: number): T {
         return this[index];
-    } 
+    }
 }
 
+
+export class ControlCollectionList<T extends object> extends Collection<T> {
+    constructor(public own: any) {
+        super()
+    }
+    public add(item: any): number {
+        if (this.own.options.settings["__loop__item__"] && (this.own.element instanceof Text || this.own.element instanceof Comment) && (item.element instanceof Text || item.element instanceof Comment)) {
+            throw new Error("movi:" + "multiple fragment not supported for array list render mechanizm")
+        }
+        return super.add(item);
+    }
+    public addBefore(item: any) {
+        if (this.own.options.settings["__loop__item__"] && (this.own.element instanceof Text || this.own.element instanceof Comment) && (item.element instanceof Text || item.element instanceof Comment)) {
+            throw new Error("movi:" + "multiple fragment not supported for array list render mechanizm ", item)
+        }
+        return super.addBefore(item);
+    }
+
+    public insertBefore(item: any) {
+        if (this.own.options.settings["__loop__item__"] && (this.own.element instanceof Text || this.own.element instanceof Comment) && (item.element instanceof Text || item.element instanceof Comment)) {
+            throw new Error("movi:" + "multiple fragment not supported for array list render mechanizm ", item)
+        }
+        return super.insertBefore(item);
+    }
+    public insert(start: number, item: any) {
+        if (this.own.options.settings["__loop__item__"] && (this.own.element instanceof Text || this.own.element instanceof Comment) && (item.element instanceof Text || item.element instanceof Comment)) {
+            throw new Error("movi:" + "multiple fragment not supported for array list render mechanizm ", item)
+        }
+        return super.insert(start, item);
+    }
+    public remove(item: T) {
+        return super.remove(item);
+    }
+
+    public item(key: T): T {
+        return super.item(key);
+    }
+
+    public has(item: T) {
+        return super.has(item);
+    }
+
+    public clear() {
+        return super.clear();
+    }
+
+    public itemIndex(index: number): T {
+        return super.itemIndex(index);
+    }
+}
 export class KeyValueItem {
     public key: string = '';
     public value: any;

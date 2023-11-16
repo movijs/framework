@@ -1,7 +1,7 @@
 import { MoviComponent } from ".";
 import { ControlProps, IControl } from "./abstractions/IControl";
-import { Component } from "./Component";
-import { CreateLocalElement } from "./core";
+import { BaseProp, Component } from "./Component";
+import { CreateLocalElement, URI } from "./core";
 import { isBusy } from "./RouterView";
 
 export class RouterLinkOptions {
@@ -12,12 +12,13 @@ export class RouterLinkOptions {
     public exactClass?: string = '';
     public activeClass?: string = '';
     public bypass?: boolean = false;
+    public target?: string = '';
+    public onExact?();
+    public offExact?();
+    public onActive?();
+    public offActive?();
 }
 
-
-export function RouterFunctionalLink(props: RouterLinkOptions) {
-
-}
 export class RouterLink extends Component<HTMLElement, RouterLinkOptions> {
     private _href: string = "/";
     public name: string = '';
@@ -28,12 +29,12 @@ export class RouterLink extends Component<HTMLElement, RouterLinkOptions> {
     public exactClass: string = '';
     public activeClass: string = '';
     public bypass: boolean = false;
+
     onExact?();
     offExact?();
     onActive?();
     offActive?();
     onbuilded(sender) {
-        this.setClassed()
         return sender;
     }
     onRouteChanged(sender): void {
@@ -76,20 +77,22 @@ export class RouterLink extends Component<HTMLElement, RouterLinkOptions> {
         return this._href;
     }
     //public to: string = "/", public el: string = "a", public options: any = {},public caption:string = "Link"
-    constructor(option: ControlProps<RouterLink, RouterLinkOptions>) {
+    constructor(options: ControlProps<RouterLink, RouterLinkOptions> | BaseProp<RouterLinkOptions> | RouterLinkOptions) {
 
         // if (!Object.keys(option).includes('props')) {
         //     option = { props: option } as any;
         // }
         var elName = "a";
+        const option = <ControlProps<RouterLink, RouterLinkOptions>>options; 
         if (option.props && option.props.el) { elName = option.props.el; };
         if (option["el"]) { elName = option["el"]; };
-        super(CreateLocalElement(elName) as any, option as any)
+
+        super(CreateLocalElement(elName) as any, option as any) 
 
         if (this.props) {
             //Object.assign(this, { ...option });
             //this.props = option;
-            if (this.props.text) { this.bind.text(() => option.props?.text); }
+            if (this.props.text) { this.bind.text(() => this.props.text); }
             if (this.props.to) {
                 if (typeof this.props.to === 'object') {
                     var to_ = this.props.to['to'] as any;
@@ -127,6 +130,18 @@ export class RouterLink extends Component<HTMLElement, RouterLinkOptions> {
         this.addHandler('click', this.linkClick);
         var self = this;
         this.setClassed = this.setClassed.bind(this);
+
+
+        if (elName == 'a') {
+            if (this.props.target) {
+                if (typeof this.props.target === 'object') {
+                    var to_ = this.props.target['target'] as any;
+                    this.attr.add({ target: this.props.target['target'] })
+                } else {
+                    this.attr.add({ target: this.props.target })
+                }
+            }
+        }
     }
     setup() {
         this.setClassed();
@@ -142,45 +157,72 @@ export class RouterLink extends Component<HTMLElement, RouterLinkOptions> {
                 hrf = this.to.split('?');
             } if (this.props.to) {
                 hrf = this.props.to.split('?');
+            } 
+            
+            let requestpath = this.context.route.path;
+            if (!requestpath.startsWith("/")) {
+                requestpath = "/" + requestpath
             }
-
-            if (this.props && this.props.activeClass && this.props.activeClass !== '' && this.context.route.path.split("?")[0] === hrf[0]) {
-                if (this.props.activeClass) {
-                    var cls = this.props.activeClass.split(" ");
-                    cls.forEach(l => {
-                        if (l.trim().length > 0) this.element.classList.add(l);
-                        //if (l.trim().length > 0) { this.element.classList.remove(l); }
-                    })
-                }
-                if (this.onActive) { this.onActive() }
-            } else {
-                if (this.props && this.props.activeClass) {
-                    var cls = this.props.activeClass.split(" ");
-                    cls.forEach(l => {
-                        if (l.trim().length > 0) { this.element.classList.remove(l); }
-                    })
+            // console.warn(requestpath,this.props.to,requestpath === hrf[0]);
+            if (!this.isDisposed) {
+                var i = this.context.route.tree.find(t => t.split("?")[0] === hrf[0]);
+                if (i) {
+                    if (this.onExact) { this.onExact() }
+                    if (this.props.onExact) { this.props.onExact() }
+                } else {
+                    if (this.offExact) { this.offExact() }
+                    if (this.props.offExact) { this.props.offExact() }
                 }
 
-                if (this.offActive) { this.offActive() }
-                if (this.props && this.props.exactClass && this.props.exactClass !== '' && this.context.route.tree) {
+                if (requestpath.split("?")[0] === hrf[0] || requestpath === this.props.to) {
+                    if (this.onActive) { this.onActive() }
+                    if (this.props.onActive) { this.props.onActive() }
+                } else {
+                    if (this.offActive) { this.offActive() }
+                    if (this.props.offActive) { this.props.offActive() }
+                }
 
-                    if (this.props.exactClass) {
-                        var cls = this.props.exactClass.split(" ");
+                if (this.props && this.props.activeClass && this.props.activeClass !== '' && requestpath.split("?")[0] === hrf[0]) {
+                    if (this.props.activeClass) {
+                        var cls = this.props.activeClass.split(" ");
                         cls.forEach(l => {
-                            if (l.trim().length > 0) {
-                                var i = this.context.route.tree.find(t => t.split("?")[0] === hrf[0]);
-                                if (i) {
-                                    this.element.classList.add(l);
-                                    if (this.onExact) { this.onExact() }
-                                } else {
-                                    if (this.offExact) { this.offExact() }
-                                    this.element.classList.remove(l);
-                                }
-                            }
+                            if (l.trim().length > 0) this.element.classList.add(l);
+                            //if (l.trim().length > 0) { this.element.classList.remove(l); }
                         })
                     }
+                    // if (this.onActive) { this.onActive() }
+                } else {
+                    if (this.props && this.props.activeClass) {
+                        var cls = this.props.activeClass.split(" ");
+                        cls.forEach(l => {
+                            if (l.trim().length > 0) { this.element.classList.remove(l); }
+                        })
+                    }
+
+
+                    if (this.props && this.props.exactClass && this.props.exactClass !== '' && this.context.route.tree) {
+
+                        if (this.props.exactClass) {
+                            var cls = this.props.exactClass.split(" ");
+                            cls.forEach(l => {
+                                if (l.trim().length > 0) {
+                                    var i = this.context.route.tree.find(t => t.split("?")[0] === hrf[0]);
+                                    if (i) {
+                                        this.element.classList.add(l);
+                                        //if (this.onExact) { this.onExact() }
+                                    } else {
+                                        //if (this.offExact) { this.offExact() }
+                                        this.element.classList.remove(l);
+                                    }
+                                }
+                            })
+                        }
+                    }
+
+
                 }
             }
+
         } catch (error) {
             var err = error;
 
@@ -188,6 +230,12 @@ export class RouterLink extends Component<HTMLElement, RouterLinkOptions> {
 
     }
     private linkClick(e: Event, sender: IControl<any, any, any>) {
+
+        var t = URI.parse(URI.UrlParse(this.props.to ? this.props.to : ''));
+
+        if (t.scheme == 'http' || t.scheme == 'https') {
+            return true;
+        }
 
         if (isBusy) {
             e.preventDefault();
@@ -209,6 +257,8 @@ export class RouterLink extends Component<HTMLElement, RouterLinkOptions> {
         } else {
             target = to_;
         }
+        target = URI.UrlParse(target);
+
 
         if (this.context.RouteManager.router.mode === "history") {
             this.context.RouteManager.router.trigger(target);

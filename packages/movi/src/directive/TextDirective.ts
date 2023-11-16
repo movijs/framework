@@ -1,8 +1,9 @@
 import { IControl } from "../abstractions";
 import { IDirective } from "../abstractions/IDirective";
 import { CheckType, DirectiveBindingType } from "../abstractions/DirectiveBindingTypes";
-import Bindable from "../Reactive/Bindable"; 
+import Bindable from "../Reactive/Bindable";
 import { IFxMapper } from "../Reactive/ReactiveEngine";
+import { ApplicationService } from "..";
 export class TextDirectiveSettings {
     public Property!: object;
     public FieldName!: string;
@@ -14,9 +15,9 @@ export class TextDirectiveSettings {
 
 export class TextDirective implements IDirective<TextDirectiveSettings>{
     id: any = null as any;
-    isArray: boolean = false; 
+    isArray: boolean = false;
     private _settings: TextDirectiveSettings = null as any;
-    private _source: IControl<any,any,any> = null as any;
+    private _source: IControl<any, any, any> = null as any;
     Bindabler?: Bindable | undefined;
     FxMapper: IFxMapper = null as any;
     constructor() {
@@ -27,20 +28,21 @@ export class TextDirective implements IDirective<TextDirectiveSettings>{
         this.removeDom = this.removeDom.bind(this);
         this.start = this.start.bind(this);
         new Bindable(this);
-        
+
     }
 
 
     getData() {
-         
+
         if (this._settings == null) { return }
-        if (this._source.onupdating) this._source.onupdating(this._source, {data:this._settings.Property,field:this._settings.FieldName, source:'text'});
+        if (!this._source || this._source.isDisposed) { return }
+        if (this._source.onupdating) this._source.onupdating(this._source, { data: this._settings.Property, field: this._settings.FieldName, source: 'text' });
         var nValue = CheckType(this._settings);
         if (this._settings.oldValue === nValue) {
             return;
         }
-        this._settings.oldValue = nValue; 
-       
+        this._settings.oldValue = nValue;
+
         if (Array.isArray(this._settings.oldValue)) {
             var arrayToString = '';
             this._settings.oldValue.forEach(tx => {
@@ -49,10 +51,14 @@ export class TextDirective implements IDirective<TextDirectiveSettings>{
             this._source.element.textContent = arrayToString;
         } else if (typeof this._settings.oldValue === 'object') {
             var objectToString = '';
-            Object.keys(this._settings.oldValue).forEach(tx => {
-                objectToString = `${objectToString} ${this._settings.oldValue[tx]}`
-            })
-            this._source.element.textContent = objectToString;
+            if (ApplicationService.current?.Options?.onObjectRender) {
+                var el = ApplicationService.current.Options.onObjectRender(this._settings.oldValue, this._source);
+            } else {
+                Object.keys(this._settings.oldValue).forEach(tx => {
+                    objectToString = `${objectToString} ${tx}:${this._settings.oldValue[tx]}`
+                })
+                this._source.element.textContent = objectToString;
+            }
         } else {
             if (this._settings.oldValue === undefined || this._settings.oldValue === null) {
                 this._settings.oldValue = '';
@@ -62,7 +68,11 @@ export class TextDirective implements IDirective<TextDirectiveSettings>{
 
             this._source.element.textContent = this._settings.oldValue;
         }
-        if (this._source.onupdated) this._source.onupdated(this._source, {data:this._settings.Property,field:this._settings.FieldName, source:'text'});
+
+        if (ApplicationService.current?.Options?.onReactiveEffectRun) {
+            ApplicationService.current.Options.onReactiveEffectRun('binding.text.changed', this)
+        }
+        if (this._source.onupdated) this._source.onupdated(this._source, { data: this._settings.Property, field: this._settings.FieldName, source: 'text' });
     }
     start() {
 
@@ -103,21 +113,21 @@ export class TextDirective implements IDirective<TextDirectiveSettings>{
         //     this.setupCompleted = true;
         // }
     }
-    init(settings: TextDirectiveSettings, Source: IControl<any,any,any>): void {
-        if (settings == null) { return } 
+    init(settings: TextDirectiveSettings, Source: IControl<any, any, any>): void {
+        if (settings == null) { return }
         this._settings = settings;
         this._source = Source;
         this.start = this.start.bind(this);
         this.update = this.update.bind(this);
         this.dispose = this.dispose.bind(this);
-        this.setup = this.setup.bind(this);  
+        this.setup = this.setup.bind(this);
         this.FxMapper.run();
-      
+
         // this.fx.run();
     }
 
     disposed: boolean = false;
-    async dispose(settings: TextDirectiveSettings, Source: IControl<any,any,any>) {
+    async dispose(settings: TextDirectiveSettings, Source: IControl<any, any, any>) {
         this.Bindabler && this.Bindabler.fxm.dispose();
         this.Bindabler = undefined;
         this._source = null as any;

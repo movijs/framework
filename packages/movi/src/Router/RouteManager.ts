@@ -18,12 +18,15 @@ export class RouteManager implements IRouteManager {
     public add(item: RouteItem, layout?: any) {
 
         if (item.path == "") { item.path = "/" }
+
+
+
         item.path = this._trimSlashes(item.path as string);
 
         var rc = new RouteRecord();
         rc.control = item.control;
         rc.layout = layout;
-        rc.path = this._trimSlashes(item.path);
+        rc.path = item.path;
         rc.parent = undefined;
         rc.isDefault = false;
         rc.keepAlive = item.keepAlive;
@@ -35,7 +38,7 @@ export class RouteManager implements IRouteManager {
             this.routeNames.set(rc.name, rc);
         }
         this.routes.set(item.path, rc);
-        this.AddChildNode(item, item.childs, this._trimSlashes(item.path), rc);
+        this.AddChildNode(item, item.childs, item.path, rc);
 
     }
 
@@ -44,7 +47,7 @@ export class RouteManager implements IRouteManager {
      * @param target Name or Route Item
      * @param item 
      */
-    public insert(target: string | RouteRecord, item: RouteItem) {  
+    public insert(target: string | RouteRecord, item: RouteItem) {
         var addded = false;
         this.routes.forEach(x => {
             if (x.name == target || x === target || x.path == target) {
@@ -53,7 +56,7 @@ export class RouteManager implements IRouteManager {
                 item.path = this._trimSlashes(item.path as string);
                 var rc = new RouteRecord();
                 rc.control = item.control;
-                rc.path = this._trimSlashes(item.path);
+                rc.path = item.path;
                 rc.parent = undefined;
                 rc.isDefault = false;
                 rc.keepAlive = item.keepAlive;
@@ -66,7 +69,7 @@ export class RouteManager implements IRouteManager {
                     this.routeNames.set(rc.name, rc);
                 }
                 this.routes.set(item.path, rc);
-                this.AddChildNode(item, item.childs, this._trimSlashes(item.path), rc);
+                this.AddChildNode(item, item.childs, item.path, rc);
             }
         });
         if (!addded) {
@@ -75,13 +78,17 @@ export class RouteManager implements IRouteManager {
     }
 
     private _trimSlashes(path: string) {
-        if (typeof path !== "string") {
-            return "";
-        }
-        var tt = path.toString().replace(/\/$/, "").replace(/^\//, "");
+        var tt = path.toString().replace(/\/$/g, "").replace(/^\//g, "").replace(/\/+/g, "/");
         if (!tt.startsWith("/")) {
             tt = "/" + tt;
         }
+        if (!tt.startsWith("/")) {
+            tt = "/" + tt;
+        }
+        if (tt.endsWith("/")) {
+            tt = tt.slice(0, tt.length - 1);
+        }
+        if (tt === "") { tt = "/" }
         return tt;
     }
     private AddChildNode(item: RouteItem, ch: RouteItem[] | undefined, prefix: any, parentObject: RouteRecord) {
@@ -400,7 +407,7 @@ export class RouteManager implements IRouteManager {
 
         this._objectMapper.clear();
         if (route.parent != null) {
-             //this.buildmapMiddlewared(route.parent, route);
+            //this.buildmapMiddlewared(route.parent, route);
 
             await this.buildmap(route.parent, route);
         }
@@ -512,7 +519,7 @@ export class RouteManager implements IRouteManager {
     }
 
     private async GetController(RequestUri: string, cb: (found, controller) => any) {
-
+        if (RequestUri == "") { RequestUri = "/" }
         var fio = window.location.href.indexOf("?");
         const urlSearchParams = new URLSearchParams(window.location.href.substring(fio));
 
@@ -526,9 +533,11 @@ export class RouteManager implements IRouteManager {
                 var key = new Scanner(keys);
                 var rx = key.exist(_RequestUri);
                 if (rx) {
+
+                    this.params = key.parameters;
                     found = true;
                     var r = this.routes.get(keys) as any;
-                    this.params = key.parameters;
+
                     await this.startBuild(r);
                     var allMiddleware = 0;
                     var next = () => {
@@ -547,7 +556,7 @@ export class RouteManager implements IRouteManager {
                                     }
                                     mw(next, item);
                                 }
-                                subs(r.instances.control); 
+                                subs(r.instances.control);
                                 //mw(next, r.instances.control);
                                 // if (r.instances.layout) {
                                 //     mw(next, r.instances.layout);
@@ -621,6 +630,71 @@ export class RouteManager implements IRouteManager {
                     rdd = {
                         extend: extender,
                         params: this.params,
+                        name: r.name,
+                        onShow: r.onShow,
+                        tree: pp
+                    };
+                }
+
+            }
+        })
+
+
+        return rdd;
+    }
+
+    private GetRouteDetailsFromString(RequestUri: string): any {
+
+        var urlSearchParams = new URLSearchParams(RequestUri);
+        if (RequestUri.split('?').length > 1) {
+            urlSearchParams = new URLSearchParams(RequestUri.split("?")[1]);
+        }
+        const urlParams = {};
+        urlSearchParams.forEach((v, k) => {
+            urlParams[k] = v;
+        })
+        var rdd = {};
+        var ru = RequestUri.split("/");
+        var pp: string[] = [];
+        var extender = {};
+        var pr = "";
+        ru.forEach(rx => {
+            if (rx.length > 0) {
+                pr = pr + "/" + rx.split("?")[0];
+                pp.push(pr)
+            }
+
+        });
+        var found = false;
+        this.routes.forEach((r, keys) => {
+            if (!found) {
+
+                var key = new Scanner(keys);
+                this.params = urlParams;
+                var ex = key.exist(RequestUri.split('?')[0]);
+
+                const extendTree = function (r: RouteRecord) {
+                    if (r.extend) {
+                        Object.keys(r.extend).forEach(x => {
+                            if (!extender[x]) {
+                                extender[x] = r.extend[x]
+                            }
+                        })
+                    }
+                    //if (r.extend) Object.assign(extender, r.extend);
+                    if (r.parent) {
+                        extendTree(r.parent);
+                    }
+                };
+                if (ex) {
+                    found = true;
+                    this.params = { ...key.parameters, ...urlParams };
+                    extender = {};
+                    extendTree(r);
+
+                    rdd = {
+                        extend: extender,
+                        params: { ...this.params, ...urlParams } ,
                         name: r.name,
                         onShow: r.onShow,
                         tree: pp

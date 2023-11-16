@@ -1,8 +1,9 @@
 import { IControl } from "../abstractions";
 import { IDirective } from "../abstractions/IDirective";
 import { CheckType, DirectiveBindingType } from "../abstractions/DirectiveBindingTypes";
-import Bindable from "../Reactive/Bindable"; 
+import Bindable from "../Reactive/Bindable";
 import { IFxMapper } from "../Reactive/ReactiveEngine";
+import { ApplicationService } from "..";
 export class WaitSettings {
     public Property!: object;
     public FieldName!: string;
@@ -13,11 +14,12 @@ export class WaitSettings {
 
 export class WaitDirective implements IDirective<WaitSettings>{
     id: any = null as any;
-    isArray: boolean = false; 
-    Bindabler?: Bindable | undefined; 
+    isArray: boolean = false;
+    Bindabler?: Bindable | undefined;
     FxMapper: IFxMapper = null as any;
     private _settings: WaitSettings = null as any;
-    private _source: IControl<any,any,any>= null as any;
+    private _source: IControl<any, any, any> = null as any;
+    oldValue;
     constructor() {
         this.getData = this.getData.bind(this);
         this.init = this.init.bind(this);
@@ -26,11 +28,12 @@ export class WaitDirective implements IDirective<WaitSettings>{
         this.removeDom = this.removeDom.bind(this);
         this.start = this.start.bind(this);
         new Bindable(this);
-   
+
     }
     getData() {
         if (this._settings == null) { return }
-        var val= CheckType(this._settings); 
+        if (!this._source || this._source.isDisposed) { return }
+        var val = CheckType(this._settings);
         var r = false;
 
         if (typeof val === 'number') {
@@ -59,21 +62,28 @@ export class WaitDirective implements IDirective<WaitSettings>{
             }
         } else if (val == null) {
             r = false;
-        } 
+        }
 
-        this._source['iswait'] = r;   
+        if (r != this.oldValue) {
+            this.oldValue = r;
+            if (ApplicationService.current?.Options?.onReactiveEffectRun) {
+                ApplicationService.current.Options.onReactiveEffectRun('binding.wait.changed', this)
+            }
+            this._source['iswait'] = r;
+        }
     }
+
     start() {
-        
-         
+
+
     }
-    
-    update() { 
+
+    update() {
         //this.start();
     }
     setupCompleted = false;
-    awaiableSetup: boolean=false;
-    setup(target, key) { 
+    awaiableSetup: boolean = false;
+    setup(target, key) {
         // if (!this.setupCompleted) {
         //     if (this._source.isDisposed) {
         //         if (this.fx) {
@@ -90,20 +100,20 @@ export class WaitDirective implements IDirective<WaitSettings>{
         //     this.setupCompleted = true;
         // }
     }
-    init(settings: WaitSettings, Source: IControl<any,any,any>): void {
+    init(settings: WaitSettings, Source: IControl<any, any, any>): void {
         if (settings == null) { return }
         this._settings = settings;
         this._source = Source;
         this.start = this.start.bind(this);
         this.update = this.update.bind(this);
         this.dispose = this.dispose.bind(this);
-        this.setup = this.setup.bind(this); 
+        this.setup = this.setup.bind(this);
         this.FxMapper.run();
         //this.Bindabler && register(this.Bindabler.fxm); 
         //this.fx.run();
     }
     disposed: boolean = false;
-    async dispose(settings: WaitSettings, Source: IControl<any,any,any>)  {
+    async dispose(settings: WaitSettings, Source: IControl<any, any, any>) {
         this.Bindabler && this.Bindabler.fxm.dispose();
         this.Bindabler = undefined;
         this._source = null as any;
@@ -111,7 +121,7 @@ export class WaitDirective implements IDirective<WaitSettings>{
         this.disposed = true;
 
     }
-    removeDom() { 
+    removeDom() {
         if (this._source && !this._source.isDisposed) {
             this._source.dispose();
         }

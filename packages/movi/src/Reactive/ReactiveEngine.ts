@@ -1,5 +1,7 @@
 
+import { ApplicationService, LinkedList, MicrotaskDelay, StopWatch } from "..";
 import { IDirective } from "../abstractions/IDirective";
+import { system } from "../environment";
 import { TargetType, UnwrapNestedRefs, UnwrapValueRefs, enableTracking, followTracking, getRaw, getTargetType, isObject, pauseTracking, resetTracking } from "./common";
 import { ArrayMethods } from "./handlers/arrayMethods";
 import { createGetter } from "./handlers/getter";
@@ -41,13 +43,16 @@ export class FxMapper implements IFxMapper {
     }
     parent;
     dispose() {
-        clearAllDepFX(this);
         this.parent?.delete(this);
+        this.depends.clear();
+        
+        clearAllDepFX(this); 
     }
 }
 
 export const ReactiveEngineMapper = new WeakSet<ReactiveEngine>();
 const AllreactiveMap: WeakMap<any, any> = new WeakMap();
+window['arm'] = AllreactiveMap;
 export class ReactiveEngine {
     constructor() {
         this.reactive = this.reactive.bind(this);
@@ -61,10 +66,26 @@ export class ReactiveEngine {
         this.triggerEffect = this.triggerEffect.bind(this);
         ReactiveEngineMapper.add(this);
     }
-    dispose() {
+    DisposeMapper = new LinkedList();
+    dispose() { 
+        var cnt = true;
+        while (cnt == true) {
+            if (this.DisposeMapper.size > 0) {
+                const element = this.DisposeMapper.pop();
+                ApplicationService.current?.Options?.onReactiveEffectRun && Promise.resolve().then(() => {
+                    if (ApplicationService.current?.Options?.onReactiveEffectRun) {
+                        ApplicationService.current.Options.onReactiveEffectRun('reactive.map.dispose', this, element, AllreactiveMap.has(element), AllreactiveMap.get(element));
+                    }
+                })
+                AllreactiveMap.delete(element);
+            } else {
+                cnt = false
+            }
+        }
+
+        this.DisposeMapper.clear();
 
         ReactiveEngineMapper.delete(this);
-        this.TargetMap.clear();
         this.TargetMap.forEach(x => {
             if (x && x.forEach) {
                 x.forEach(c => {
@@ -93,12 +114,17 @@ export class ReactiveEngine {
             }
         });
         this.cacheFx.clear();
+
         if (this._original) AllreactiveMap.delete(this._original);
         delete this._original;
-        this.ReactiveMap = new WeakMap();
+        //this.ReactiveMap = new WeakMap();
+        if (ApplicationService.current?.Options?.onReactiveEffectRun) {
+            ApplicationService.current.Options.onReactiveEffectRun('reactive.dispose', this, ReactiveEngineMapper);
+        }
+        //system.GC(this);
     }
     //ReactiveMap: WeakMap<any, any> = new WeakMap();
-    ReactiveMap: WeakMap<any, any> = AllreactiveMap; //new WeakMap();
+    ReactiveMap: () => WeakMap<any, any> = () => AllreactiveMap; //new WeakMap();
     TargetMap: ReactiveListeners = new Map<any, Map<any, Set<FxMapper>>>();
     activeCallback: any;
     isReadonly: boolean = false;
@@ -139,14 +165,14 @@ export class ReactiveEngine {
         //     return other;
         // }
 
-        let existingProxy = self.ReactiveMap.get(model)
+        let existingProxy = AllreactiveMap.get(model)
         if (existingProxy) {
             return existingProxy as any
         }
 
 
 
-        existingProxy = self.ReactiveMap.get(getRaw(model))
+        existingProxy = AllreactiveMap.get(getRaw(model))
         if (existingProxy) {
             return existingProxy as any
         }
@@ -165,12 +191,14 @@ export class ReactiveEngine {
             //     return "copied";
             // }
             //AllreactiveMap.set(model, proxy);
-            this.ReactiveMap.set(model, proxy);
+            this.DisposeMapper.push(model);
+            AllreactiveMap.set(model, proxy);
             return proxy;
         } else {
             var proxy = new Proxy(model, this.deepHandler);
             // AllreactiveMap.set(model, proxy);
-            this.ReactiveMap.set(model, proxy);
+            this.DisposeMapper.push(model);
+            AllreactiveMap.set(model, proxy);
             return proxy;
         }
 
@@ -209,24 +237,24 @@ export class ReactiveEngine {
         if (model != null && model != undefined) {
             Object.keys(model).forEach((key) => {
                 if (typeof model[key] === 'object') {
-                    if (this.TargetMap.has(getRaw(model[key])) || this.TargetMap.has(model[key]) || this.ReactiveMap.has(model[key]) || this.ReactiveMap.has(getRaw(model[key]))) {
+                    if (this.TargetMap.has(getRaw(model[key])) || this.TargetMap.has(model[key]) || AllreactiveMap.has(model[key]) || AllreactiveMap.has(getRaw(model[key]))) {
                         this.clearModel(model[key])
                     }
                 }
-                this.ReactiveMap.delete(getRaw(model[key]));
-                this.ReactiveMap.delete(model[key]);
+                AllreactiveMap.delete(getRaw(model[key]));
+                AllreactiveMap.delete(model[key]);
                 this.TargetMap.delete(model[key])
                 this.TargetMap.delete(getRaw(model[key]))
             })
-            this.ReactiveMap.delete(getRaw(model));
-            this.ReactiveMap.delete(model);
+            AllreactiveMap.delete(getRaw(model));
+            AllreactiveMap.delete(model);
             this.TargetMap.delete(model);
             this.TargetMap.delete(getRaw(model));
         }
 
     }
     track(model, key) {
-        if (currentFx && followTracking && this.ReactiveMap.get(getRaw(model))) {
+        if (currentFx && followTracking && AllreactiveMap.get(getRaw(model))) {
             var raw = model;
             let depsMap = this.TargetMap.get(raw)
             if (!depsMap) {
@@ -241,6 +269,7 @@ export class ReactiveEngine {
                 depsMap.set(key, (dep = new Set<FxMapper>()))
             }
             this.trackEffects(dep, model, key);
+
         }
 
         // this.TargetMap.forEach(async yy => {
@@ -253,16 +282,20 @@ export class ReactiveEngine {
     }
     trackEffects(dep: Set<FxMapper>, model, key) {
         let shouldTrack = !dep.has(currentFx!);
-        if (currentFx && shouldTrack && this.ReactiveMap.get(getRaw(model))) {
+        if (currentFx && shouldTrack && AllreactiveMap.get(getRaw(model))) {
             if (!dep.has(currentFx)) {
-                currentFx.directive && currentFx.directive?.setup && currentFx.directive?.setup(this.reactive(model), key)
+                currentFx.directive && currentFx.directive.setup && currentFx.directive.setup(this.reactive(model), key)
                 dep.add(currentFx);
                 currentFx.parent = dep;
+                // dep.forEach(x => {
+                //     if (currentFx) currentFx.parent = dep;
+                //     currentFx?.depends.add(x)
+                // })
+                if (ApplicationService.current?.Options?.onReactiveEffectRun) {
+                    ApplicationService.current.Options.onReactiveEffectRun('track', dep, model, key)
+                }
             }
-            dep.forEach(x => {
-                if (currentFx) currentFx.parent = dep;
-                currentFx?.depends.add(x)
-            })
+
         }
     }
 
@@ -287,7 +320,7 @@ export class ReactiveEngine {
         if (items) {
             items.forEach(f => {
                 if (f && f.directive && f.directive.disposed) {
-                    //items?.delete(f);
+                    items?.delete(f);
                 } else {
                     effects.push(f);
                 }
@@ -300,42 +333,50 @@ export class ReactiveEngine {
     }
     cacheFx = new Map<FxMapper, Set<any>>();
     cacheTimer;
-    triggerEffects(dep: FxMapper[], key: any) {
+    async triggerEffects(dep: FxMapper[], key: any) {
         const effects = Array.isArray(dep) ? dep : [...dep]
-
         for (const effect of effects) {
             if (!this.cacheFx.has(effect)) {
                 this.cacheFx.set(effect, key);
-                for (const depEffect of effect.depends) {
-                    for (const adddepth of depEffect.depends) {
-                        if (!this.cacheFx.has(adddepth)) {
-                            this.cacheFx.set(adddepth, key);
-                        }
-                    }
-                }
+                // for (const depEffect of effect.depends) {
+                //     // for (const adddepth of depEffect.depends) {
+                //     if (!this.cacheFx.has(depEffect)) {
+                //         this.cacheFx.set(depEffect, key);
+                //     }
+                //     // }
+                // }
+                // for (const depEffect of effect.depends) {
+
+                //     for (const adddepth of depEffect.depends) {
+                //         if (!this.cacheFx.has(adddepth)) {
+                //             this.cacheFx.set(adddepth, key);
+                //         }
+                //     }
+                // }
             }
         }
         this.cacheTimer && window.clearTimeout(this.cacheTimer)
         this.cacheTimer = window.setTimeout(async () => {
 
             Promise.resolve().then(() => {
-                this.cacheFx.forEach((v, k) => {
+                if (ApplicationService.current?.Options?.onReactiveEffectRun) {
+                    ApplicationService.current.Options.onReactiveEffectRun('trigger', this.cacheFx, key)
+                }
+                this.cacheFx.forEach(async (v, k) => {
                     if (k.directive && !k.directive.disposed) {
+                        //promises.push(this.triggerEffect(k, v))
                         this.triggerEffect(k, v);
                     }
-                    this.cacheFx.delete(k);
                 })
-                this.cacheFx.clear();
                 this.cacheFx = new Map<FxMapper, Set<any>>();
             });
         })
     }
 
-    triggerEffect(
+    async triggerEffect(
         effect: FxMapper, key: any) {
-        if (effect !== currentFx) {
+        if (effect !== currentFx && (effect.directive && !effect.directive.disposed)) {
             effect.run();
-
         }
     }
 

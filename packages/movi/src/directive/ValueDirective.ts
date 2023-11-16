@@ -28,6 +28,7 @@ export class ValueDirective implements IDirective<ValueDirectiveSettings>{
     }
     getData() {
         if (this._settings == null) { return }
+        if (!this._source || this._source.isDisposed) { return }
         if (this._source.onupdating) this._source.onupdating(this._source, {data:this._settings.Property,field:this._settings.FieldName, source:'value'});
         var nValue = CheckType(this._settings);
         if (this._settings.oldValue === nValue) {
@@ -47,12 +48,12 @@ export class ValueDirective implements IDirective<ValueDirectiveSettings>{
 
             case 'select': case 'SELECT':
                 var select = <HTMLSelectElement>this._source.element;
-                this._source.addHandler("change", (sender, e) => {
-                    if (this._settings.oldValue != select.value) {
-                        this._settings.Property[this._settings.FieldName] = select.value as unknown as any;
-                        this._settings.oldValue = select.value;
-                    }
-                });
+                // this._source.addHandler("change", (sender, e) => {
+                //     if (this._settings.oldValue != select.value) {
+                //         this._settings.Property[this._settings.FieldName] = select.value as unknown as any;
+                //         this._settings.oldValue = select.value;
+                //     }
+                // });
                 select.value = this._settings.oldValue;
                 break;
             case 'option': case 'OPTION':
@@ -118,6 +119,7 @@ export class ValueDirective implements IDirective<ValueDirectiveSettings>{
     setupCompleted = false;
     awaiableSetup: boolean=false;
     setup(target, key) { 
+         
         // if (!this.setupCompleted) {
         //     if (this._source.isDisposed) {
         //         if (this.fx) {

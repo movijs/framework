@@ -4,6 +4,7 @@ import { CheckModelType, CheckType, DirectiveBindingType } from "../abstractions
 import Bindable from "../Reactive/Bindable";
 import { closeSetup, listenSetup, pauseTracking, resetTracking } from "../Reactive/common";
 import { IFxMapper } from "../Reactive/ReactiveEngine";
+import { ApplicationService } from "..";
 
 export class ModelDirectiveSettings {
     public Property!: any;
@@ -33,7 +34,7 @@ export class ModelDirective implements IDirective<ModelDirectiveSettings>{
 
     getData() {
         if (this._settings == null) { return }
-
+        if (!this._source || this._source.isDisposed) { return }
         if (this._source.onupdating) this._source.onupdating(this._source, { data: this._settings.Property, field: this._settings.FieldName, source: 'model' });
         //if (this.setupCompleted) { return this.update() }
 
@@ -161,7 +162,9 @@ export class ModelDirective implements IDirective<ModelDirectiveSettings>{
                 }
                 break;
         }
-
+        if (ApplicationService.current?.Options?.onReactiveEffectRun) {
+            ApplicationService.current.Options.onReactiveEffectRun('binding.model.changed', this)
+        }
         if (this._source.onupdated) this._source.onupdated(this._source, { data: this._settings.Property, field: this._settings.FieldName, source: 'model' });
         this.setupCompleted = true;
     }
@@ -186,6 +189,7 @@ export class ModelDirective implements IDirective<ModelDirectiveSettings>{
     update() {
 
         if (this._settings == null) { return }
+        if (this._source && this._source.isDisposed) { return }
         if (this._source.onupdating) this._source.onupdating(this._source, { data: this._settings.Property, field: this._settings.FieldName, source: 'model' });
         //if (!this.setupCompleted) { return this.setupCompleted }
         //Source.element.textContent = settings.callback(); 
@@ -194,7 +198,7 @@ export class ModelDirective implements IDirective<ModelDirectiveSettings>{
             if (this._source.isDisposed) {
                 this.dispose(this._settings, this._source);
                 return;
-            } 
+            }
             pauseTracking()
             this._settings.Property = data;
             this._settings.FieldName = expr;
@@ -237,7 +241,9 @@ export class ModelDirective implements IDirective<ModelDirectiveSettings>{
                 (this._source.element as any).value = nv;
                 break;
         }
-
+        if (ApplicationService.current?.Options?.onReactiveEffectRun) {
+            ApplicationService.current.Options.onReactiveEffectRun('binding.model.changed', this)
+        }
         if (this._source.onupdated) this._source.onupdated(this._source, { data: this._settings.Property, field: this._settings.FieldName, source: 'model' });
 
     }

@@ -3,6 +3,7 @@ import { IDirective } from "../abstractions/IDirective";
 import { CheckType, DirectiveBindingType } from "../abstractions/DirectiveBindingTypes";
 import Bindable from "../Reactive/Bindable"; 
 import { IFxMapper } from "../Reactive/ReactiveEngine";
+import { ApplicationService } from "..";
 
 export class ReloadSettings {
     public Property!: object;
@@ -31,6 +32,7 @@ export class ReloadDirective implements IDirective<ReloadSettings>{
 
     getData() {
         if (this._settings == null) { return }
+        if (!this._source || this._source.isDisposed) { return }
         if (this._source.onupdating) this._source.onupdating(this._source, {data:this._settings.Property,field:this._settings.FieldName, source:'reload'});
         var val  = CheckType(this._settings); 
         var r = false;
@@ -73,7 +75,9 @@ export class ReloadDirective implements IDirective<ReloadSettings>{
         if (r === true) {
            if(this._source.reload) this._source.reload(); 
         } 
-
+        if (ApplicationService.current?.Options?.onReactiveEffectRun) {
+            ApplicationService.current.Options.onReactiveEffectRun('binding.reload.changed', this)
+        }
         if (this._source.onupdated) this._source.onupdated(this._source, {data:this._settings.Property,field:this._settings.FieldName, source:'reload'});
     }
     start() {

@@ -1,4 +1,4 @@
-import { IModelSettings } from "..";
+import { IConfigurationOptions, IModelSettings } from "..";
 import { routeType } from "../core/NavigateEventArgs";
 import { IControl } from "./IControl";
 import { IRouteManager } from "./IRouteManager";
@@ -51,7 +51,14 @@ export class SysInternalNotification {
 export interface IDisposable {
     dispose(cb?: Function);
 }
+
+export interface IModule { 
+    name: string,
+    install: () => {},
+    run: () => {}
+}
 export interface IApplicationService {
+    Options: IConfigurationOptions;
     services: IServiceManager;
     starters: Set<Function>;
     ControlCollection: WeakMap<any, any>;

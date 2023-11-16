@@ -1,3 +1,4 @@
+import { moviComponent } from "../Component";
 
 export const enum CharacterCodes {
     slash = 0x2F,                 // /
@@ -106,10 +107,14 @@ export default class Scanner {
             }
         })
 
-        return new RegExp(rtx, "g");
+        return new RegExp(rtx, "gi");
     }
     private filterHtml(val: any) {
-        return val.replaceAll("<[^>]*>", " ").replaceAll("\\s+", " ").trim();
+        var comp = moviComponent('div');
+        comp.bind.html(() => val);
+        // var el = document.createElement("div");
+        // el.innerHTML = val.replaceAll("<[^>]*>", " ").replaceAll("\\s+", " ").trim();
+        return val.replaceAll("<[^>]*>", " ").replaceAll("\\s+", " ").trim(); //comp.element.textContent;
     }
     public parameters = {};
     public exist(input: string): boolean {
@@ -127,6 +132,7 @@ export default class Scanner {
 
             var fio = window.location.href.indexOf("?");
             const urlSearchParams = new URLSearchParams(window.location.search);
+            
             urlSearchParams.forEach((val, key) => {
                 this.parameters[key] = this.filterHtml(val);
             });

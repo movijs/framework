@@ -21,12 +21,15 @@ export function createSetter(engine: ReactiveEngine) {
         }
         var raw = getRaw(receiver);
         var resulme = getRaw(target) === getRaw(receiver);
- 
+
         if (!Array.isArray(target) && !isModified(newValue, oldValue)) {
-            resulme = false; 
+            resulme = false;
         } else if (Array.isArray(target) && !isNew) {
             resulme = false;
-        }  
+        }
+        // else if (Object.is(newValue, oldValue)) {
+        //     resulme = false;
+        // }
 
         if (resulme) {
             engine.trigger(target, p, newValue);

@@ -31,6 +31,7 @@ export class AttributeHandlingDirective implements IDirective<AttributeHandlingS
     }
     awaiableSetup: boolean = true;
     getData() {
+        if (!this._source || this._source.isDisposed) { return }
         if (this._source.onupdating) this._source.onupdating(this._source, {data:this._settings.Property,field:this._settings.FieldName, source:'attribute'});
         if (this._settings == null) { return }
 
@@ -38,8 +39,7 @@ export class AttributeHandlingDirective implements IDirective<AttributeHandlingS
         if (this._settings.oldValue === nValue) {
             return;
         }
-        this._settings.oldValue = nValue;
-         
+        this._settings.oldValue = nValue; 
 
         var r = false;
 

@@ -1,6 +1,6 @@
 {
     "name": "movijs",
-    "version": "1.2.50",
+    "version": "1.2.84",
     "description": "",
     "type": "module",
     "main": "./dist/index.js",
@@ -21,7 +21,7 @@
         "packages/*"
     ],
     "scripts": {
-        "build": "rollup -c -w"
+        "build": "rollup -c"
     },
     "author": "Ekrem Erşahin",
     "license": "MIT",

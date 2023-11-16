@@ -3,19 +3,19 @@
 import { IClass, IControl } from "./abstractions";
 import { IApplicationService } from "./abstractions/IApplicationService";
 import { ApplicationService } from "./ApplicationService";
-import { Collection, controlAttribute, CreateLocalElement, ElementTypes, KeyValueItem, styleKeys, toKebab } from "./core";
+import { Collection, controlAttribute, ControlCollectionList, CreateLocalElement, ElementTypes, KeyValueItem, styleKeys, toKebab } from "./core";
 import { controlClass } from "./core/controlClass";
 import { controlStyle } from "./core/controlStyle";
 import { system } from "./environment";
 import { getTransitionInfo } from "./core/transition";
 import { Directive } from "./directive";
-import { Component, ReactiveEngine, RouterView, baseemits, baseeventargs } from ".";
+import { Component, ReactiveEngine, RouterView, Slot, baseemits, baseeventargs } from ".";
 
 
 
 export const ElementModelMap = new WeakMap<any, IControl<ElementTypes, any, any>>();
 var counter = 0;
-const PlaceholderElement: Text = document.createTextNode('');
+const PlaceholderElement: Comment = document.createComment('ph');
 const DefaultFragmentElement: DocumentFragment = document.createDocumentFragment();
 
 const systems = new Set<string>();
@@ -45,6 +45,8 @@ export class StateTypeBase<T = Object>{
     context = ApplicationService.current;
     slots: [] = [];
 }
+
+
 export abstract class MoviComponent<ElementType extends ElementTypes, StateType, caller extends MoviComponent<ElementType, StateType, caller>> implements IControl<ElementType, StateType, caller>{
     public props: StateType = {} as StateType;
     private _initprops = false;
@@ -53,17 +55,16 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
     slots?: IControl<any, any, any>[];
     name?: string;
     elementCreating?(current: any): any;
-
-    private _ = {
-        placeholder: PlaceholderElement.cloneNode(true) as Comment,
+    protected _ = {
+        placeholder: null as unknown as Comment,
         isMainComponent: false,
         isContainer: false,
         waitInit: false,
         waitState: false,
         isInited: false,
         viewInit: false,
+        isConfigurated: false,
         on: new Set<any>(),
-        isHidden: false,
         replacedHidden: false,
         instanced: false,
         initializing: {
@@ -97,6 +98,21 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
                 }
 
             },
+            onbuilded: () => {
+
+                if (this.onbuilded) { this.onbuilded(this as any) }
+                // if (this._.isInited === false && this['onbuilding']) { this['onbuilding'](this as any); }
+
+                this._emitCollection?.get("onbuilded")?.forEach(cb => {
+                    cb(this);
+                })
+                if (!this._.isInited) {
+                    if (this['intervention'] && this['intervention']['onbuilded']) {
+                        this['intervention']['onbuilded'](this)
+                    }
+                }
+
+            },
             oncreating: () => {
                 if (this.oncreating) this.oncreating(this as any);
                 this._emitCollection?.get("oncreating")?.forEach(cb => {
@@ -107,11 +123,19 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
                     try {
                         this['intervention']['oncreating'](this, this)
                     } catch (error) {
-                        debugger;
                     }
 
                 }
 
+            },
+            oncreated: () => {
+                if (this.oncreated) this.oncreated(this as any);
+                this._emitCollection?.get("oncreated")?.forEach(cb => {
+                    cb(this);
+                })
+                if (this['intervention'] && this['intervention']['oncreated']) {
+                    this['intervention']['oncreated'](this);
+                }
             },
             preconfig: () => {
 
@@ -121,6 +145,22 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
                 })
                 if (this['intervention'] && this['intervention']['preconfig']) {
                     this['intervention']['preconfig'](this);
+                }
+            },
+            onconfig: () => {
+                if (this._.isConfigurated) { return }
+                this._.isConfigurated = true;
+                var self = this;
+                if (self.onconfig) self.onconfig(self as any);
+                self._emitCollection?.get("onconfig")?.forEach(cb => {
+                    if (self.onconfig != cb) {
+                        cb(self);
+                    }
+                })
+                if (this['intervention'] && this['intervention']['onconfig']) {
+                    if (self.onconfig != self['intervention']['onconfig']) {
+                        self['intervention']['onconfig'](self);
+                    }
                 }
             }
         },
@@ -134,44 +174,41 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
                 }
             },
             addSlots: () => {
-                var self = this;
-                var slots = this._.methods.findSlotNodes(this as any);
+                // var self = this;
+                // var slots = this._.methods.findSlotNodes(this as any);
 
-                var namedSlot = false;
-                // console.error(slots,this );
-                if (slots && slots.length > 0) {
+                // var namedSlot = false;
 
 
-                    if (this.slots) {
-                        slots.forEach((x, isd) => {
-                            if (x.props && x.props.Name) {
-                                var s = this.slots?.find(t => (t.attr.get('slot') === x.attr.get('name')));
-                                if (s) {
-                                    s.attr.remove('slot');
-                                    s.parent = self;
-                                    x.controls.add(s);
-                                    namedSlot = true;
-                                }
-                            }
-                        })
 
-                        slots.forEach((x, isd) => {
+                // if (slots && slots.length > 0) {
+                //     slots.forEach((x, isd) => {
+                //         debugger
+                //         var s = self.slots?.find(t => (t.attr.get('slot') === x.attr.get('name')));
+                //         if (s) {
+                //             s.attr.remove('slot');
+                //             s.parent = self;
+                //             x.controls.add(s);
+                //             namedSlot = true;
+                //         }
+                //     })
+                //     // slots.forEach((x, isd) => {
 
-                            if (!x.props || !x.props.Name) {
-                                var s = this.slots?.filter(t => !t.attr.has('slot'));
-                                if (s && s.length > 0) {
-                                    s.forEach(y => {
-                                        y.parent = self;
-                                        x.controls.add(y);
-                                    })
-                                    namedSlot = true;
-                                }
-                            }
-                        })
-                    }
+                //     //     if (!x.props || !x.props.Name) {
+                //     //         var s = this.slots?.filter(t => !t.attr.has('slot'));
+                //     //         if (s && s.length > 0) {
+                //     //             s.forEach(y => {
+                //     //                 y.parent = self;
+                //     //                 x.controls.add(y);
+                //     //             })
+                //     //             namedSlot = true;
+                //     //         }
+                //     //     }
+                //     // })
 
-                    // console.error('slots', this._.methods.findSlotNodes(this),this['slots']);
-                }
+
+                //     // console.error('slots', this._.methods.findSlotNodes(this),this['slots']);
+                // }
 
                 // this.controls.forEach(f => {
                 //     f._.methods.addSlots();
@@ -179,22 +216,28 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
             },
             findSlotNodes: (comp: IControl<any, any, any>): IControl<any, any, any>[] => {
                 var founds: IControl<any, any, any>[] = [];
-                comp.controls.filter((x) => x.props && x.props['isSlot']).forEach(y => {
-                    founds.push(y);
-                    var si = comp['_'].methods.findSlotNodes(y);
-                    if (si && si.length > 0) {
-                        founds.push(...si)
-                    }
-                })
+
+                // // comp.controls.filter((x) => x.element instanceof Slot).forEach(y => {
+                // //     founds.push(y);
+                // //     var si = comp['_'].methods.findSlotNodes(y);
+                // //     if (si && si.length > 0) {
+                // //         founds.push(...si)
+                // //     }
+                // // })
+
+                // comp.controls.forEach(y => {
+                //     if (y.element instanceof HTMLSlotElement) {
+                //         founds.push(y);
+                //     }
+                //     var si = comp['_'].methods.findSlotNodes(y);
+                //     if (si && si.length > 0) {
+                //         founds.push(...si)
+                //     }
+                // })
                 return founds;
             },
             runSetup: () => {
-                if (this.initializeComponent) { this.initializeComponent = this.initializeComponent.bind(this); };
-
-                this._emitCollection?.get("initializeComponent")?.forEach(cb => {
-                    cb(this);
-                })
-
+              
                 if (this.setup) {
                     this.setup(this as any);
                 }
@@ -236,51 +279,96 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
             },
             waiterFr: DefaultFragmentElement.cloneNode(),// document.createDocumentFragment(),
             waiterin: null as any,
-            AppendElement: async (child) => {
+            AppendElement: async (child, reference: any = null) => {
 
                 const array = Array.prototype.slice.call(this.element.childNodes);
-                if (this._.isMainComponent) {
+                if (this._.isMainComponent || this.element instanceof Text || this.element instanceof Comment) {
                     //Mevcut komponent bir fragment içeriyor. Bir üst kontrole yönlendir. ve ana düğümü bulana kadar devam et.
                     //console.error("Ana düğüm bir fragment. üst birimde arama yapılacak")
+
                     if (this.parent) {
-                        (this.parent as any)._.methods.AppendElement(child);
+                        (this.parent as any)._.methods.AppendElement(child, this);
                     } else {
 
                         console.error("Ana düğüm girişi bulunamadı. İşlem burada sonlandırılır.", child);
                     }
                 } else {
+
                     // Bu kontroller bir html düğümüdür.  
-                    if (child._.isMainComponent) {
+                    if (child._.isMainComponent || child.element instanceof Text || child.element instanceof Comment) {
+
                         //Öğe önceden eklenmiş mi?
                         if (array.indexOf(child.element) > -1) {
                             //console.error("Öğe önceden işaretlenmiş")
                         } else {
+
                             //console.error("Gelen düğüm işaretlenecek")
                             if (child.parent && array.indexOf(child.parent.element) > -1) {
                                 if (child.parent) {
                                     var ito = child['insertTo'];
                                     var ref = child.parent.controls.filter(ff => ff.isRendered)[ito];
-                                    if (ref) {
-                                        var target = ref.element;
-                                        if (ref._.isMainComponent) {
-                                            target = target.previousElementSibling;
-                                        }
-
-                                        this.element.insertBefore(child.element, target);
+                                    if (ref && (ref.element instanceof Text || ref.element instanceof Comment)) {
+                                        var len = array.indexOf(ref.element) - ref.controls.length;
+                                        var newref = array[len];
+                                        this.element.insertBefore(child.element, newref);
                                     } else {
-
-                                        this.element.insertBefore(child.element, child.parent.element);
+                                        if (ref) {
+                                            var target = ref.element;
+                                            if (ref) {
+                                                if (ref.element.isConnected) {
+                                                    this.element.insertBefore(child.element, ref.element);
+                                                } else if (ref._.placeholder.isConnected) {
+                                                    this.element.insertBefore(child.element, ref._.placeholder);
+                                                } else {
+                                                    this.element.insertBefore(child.element, child.parent.element);
+                                                }
+                                            } else if (ref._.isMainComponent) {
+                                                target = target.previousElementSibling;
+                                                this.element.insertBefore(child.element, target);
+                                            }
+                                        } else {
+                                            this.element.insertBefore(child.element, child.parent.element);
+                                        }
                                     }
 
                                 } else {
-
                                     this.element.insertBefore(child.element, child.parent.element);
                                 }
 
                             } else {
-                                this.element.appendChild(child.element);
+                                var ito = child['insertTo'];
+                                var ref = this.controls.filter(ff => ff.isRendered)[ito];
+                                if (ref && (ref.element instanceof Text || ref.element instanceof Comment)) {
+                                    var len = array.indexOf(ref.element) - ref.controls.length;
+                                    var newref = array[len];
+                                    this.element.insertBefore(child.element, newref);
+                                } else {
+
+                                    if (this.element instanceof Comment || this.element instanceof Text) {
+                                        if (this.parent) {
+                                            (this.parent as any)._.methods.AppendElement(child);
+                                        } else {
+
+                                            this.element.parentElement?.insertBefore(child.element, this.element);
+                                        }
+
+                                    } else if (ref) {
+                                        //
+                                        try {
+                                            ref.element.parentElement?.insertBefore(child.element, ref.element);
+                                        } catch (error) {
+                                            this.element.appendChild(child.element);
+                                        }
+
+                                    } else {
+                                        this.element.appendChild(child.element);
+                                    }
+                                }
+
                             }
                         }
+
+
                     } else {
                         //Gelen element bir html öğesi
 
@@ -292,14 +380,67 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
 
                                 var ito = child['insertTo'];
                                 var ref = child.parent.controls.filter(ff => ff.isRendered)[ito];
-                                if (ref && ref.isVisible) {
-                                    this.element.insertBefore(child.element, ref.element);
+                                if (ref && (ref.element instanceof Text || ref.element instanceof Comment)) {
+                                    var len = array.indexOf(ref.element) - ref.controls.length;
+                                    var newref = array[len];
+                                    this.element.insertBefore(child.element, newref);
                                 } else {
-                                    this.element.insertBefore(child.element, child.parent.element);
+                                    if (ref && ref.isVisible) {
+
+                                        if (ref.element.isConnected) {
+                                            this.element.insertBefore(child.element, ref.element);
+                                        } else if (ref._.placeholder.isConnected) {
+                                            this.element.insertBefore(child.element, ref._.placeholder);
+                                        } else {
+                                            this.element.insertBefore(child.element, child.parent.element);
+                                        }
+                                    } else if (ref) {
+                                        if (ref._.placeholder.isConnected) {
+                                            this.element.insertBefore(child.element, ref._.placeholder);
+                                        } else if (ref.element.isConnected) {
+                                            this.element.insertBefore(child.element, ref.element);
+                                        } else {
+                                            this.element.insertBefore(child.element, child.parent.element);
+                                        }
+                                    } else {
+                                        this.element.insertBefore(child.element, child.parent.element);
+                                    }
                                 }
 
+
                             } else {
-                                this.element.appendChild(child.element);
+
+                                var ito = child['insertTo'];
+                                var ref = this.controls.filter(ff => ff.isRendered)[ito];
+                                if (ref && (ref.element instanceof Text || ref.element instanceof Comment)) {
+                                    var len = array.indexOf(ref.element) - ref.controls.length;
+                                    var newref = array[len];
+                                    this.element.insertBefore(child.element, newref);
+                                } else {
+                                    if (this.element instanceof Comment) {
+                                        if (this.parent) {
+                                            (this.parent as any)._.methods.AppendElement(child);
+                                        } else {
+                                            this.element.parentElement?.insertBefore(child.element, this.element);
+                                        }
+
+                                    } else if (this.element instanceof Text) {
+                                        if (this.parent) {
+                                            (this.parent as any)._.methods.AppendElement(child);
+                                        } else {
+                                            this.element.parentElement?.insertBefore(child.element, this.element);
+                                        }
+                                    } else if (ref) {
+                                        try {
+                                            ref.element.parentElement?.insertBefore(child.element, ref.element);
+                                        } catch (error) {
+                                        }
+
+                                    } else {
+                                        this.element.appendChild(child.element);
+                                    }
+                                }
+
                             }
 
                         }
@@ -503,6 +644,17 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
                 }
             },
             itemadd: (index, item) => {
+
+                // if (typeof item === 'function') {
+                //     var newElement = item();
+                //     if (newElement instanceof Promise) {
+                //         item = new Component({});
+                //         //newElement.then(x=> item.add(new x.default()))
+
+                //         newElement.then(x => console.error(x))
+                //     }
+                // }
+
                 var self = this;
 
                 if (Array.isArray(item)) {
@@ -525,13 +677,18 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
                             nitem['insertTo'] = index;
                             nitem.parent = self;
                             nitem.build();
-                        } else if (typeof nitem === 'boolean' || typeof nitem === 'bigint' || typeof nitem === 'string') {
+                        } else if (typeof nitem === 'boolean' || typeof nitem === 'bigint' || typeof nitem === 'number' || typeof nitem === 'string') {
                             var adding = new Component('text');
                             adding.bind.text(() => item);
                             adding.parent = self;
                             adding['insertTo'] = index;
                             adding.build();
-                            ;
+                        } else if (typeof nitem === 'object' && !Array.isArray(nitem)) {
+                            var adding = new Component('text');
+                            adding.bind.text(() => item);
+                            adding.parent = self;
+                            adding['insertTo'] = index;
+                            adding.build();
                         } else {
                             console.warn('build err', typeof nitem, nitem, item);
                         }
@@ -554,10 +711,33 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
         eventHandlers: new Collection<KeyValueItem>(),
         modelInstances: new Set<any>()
     }
-    constructor(tag, props, args) {
+    protected constructor(tag, props, args) {
+
+
+        if (props && props.oncreating) {
+            this.on('oncreating', props.oncreating); delete props.oncreating;
+        }
+        if (args && args.oncreating) {
+            this.on('oncreating', args.oncreating); delete args.oncreating;
+        }
+        this._.event.oncreating();
+        this._.placeholder = PlaceholderElement.cloneNode(true) as any;
+        this.setText = this.setText.bind(this);
+        this.add = this.add.bind(this);
+        this.setTempContent = this.setTempContent.bind(this);
+        this.build = this.build.bind(this);
+        this.dispose = this.dispose.bind(this);
+        this.flush = this.flush.bind(this);
+        this.clear = this.clear.bind(this);
+        this.show = this.show.bind(this);
+        this.hide = this.hide.bind(this);
+        this.on = this.on.bind(this);
+        this.addHandler = this.addHandler.bind(this);
+        this.removeHandler = this.removeHandler.bind(this);
+        this.using = this.using.bind(this);
+
+
         if (this.elementCreating) { tag = CreateLocalElement(this.elementCreating(tag)) }
-
-
 
         Object.keys(this).forEach(k => {
             if (typeof this[k] === 'function') {
@@ -574,33 +754,30 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
         if (!props) {
             props = {};
         }
+
+
+        const predefinedsettings = ['preconfig', 'oncreating', 'oncreated', 'onbuilding', 'onbuilded', 'ondisposing', 'ondisposed', 'onconfig', 'onsetup', 'initializeComponent', 'renderTo'];
+        if (props) {
+            predefinedsettings.forEach(x => {
+
+                if (props[x]) { this.on(x, props[x]); delete props[x]; }
+
+            })
+        }
+
+
+
         this.props = props;
         if (args) {
-            //Object.assign(this, args);
-            // if (args.preconfig) { this.on("preconfig", args.preconfig.bind(this)); }
-            // if (args.oncreating) { this.on("oncreating", args.oncreating.bind(this)); }
-            // if (args.oncreated) {this.oncreated = args.oncreated }//this.oncreated = args.oncreated;
-            // if (args.onbuilding) {this.onbuilding = args.onbuilding;  }//this.onbuilding = args.onbuilding; 
-            // if (args.onbuilded) { this.onbuilded = args.onbuilded; }//this.onbuilded = args.onbuilded;
-            // if (args.ondisposing) { this.ondisposing = args.ondisposing;}//this.ondisposing = args.ondisposing;
-            // if (args.ondisposed) {this.ondisposed = args.ondisposed; }//this.ondisposed = args.ondisposed;
-            // if (args.onconfig) { this.onconfig = args.onconfig; }//this.onconfig = args.onconfig;
-            // if (args.setup) { this.setup = args.setup; }// this.setup = args.setup;
+            predefinedsettings.forEach(x => {
 
+                if (args[x]) { this.on(x, args[x]); delete args[x]; }
 
-            if (args.preconfig) { this.on("preconfig", args.preconfig.bind(this)); }
-            if (args.oncreating) { this.on("oncreating", args.oncreating.bind(this)); }
-            if (args.oncreated) { this.on("oncreated", args.oncreated.bind(this)); }//this.oncreated = args.oncreated;
-            if (args.onbuilding) { this.on("onbuilding", args.onbuilding.bind(this)); }//this.onbuilding = args.onbuilding; 
-            if (args.onbuilded) { this.on("onbuilded", args.onbuilded.bind(this)); }//this.onbuilded = args.onbuilded;
-            if (args.ondisposing) { this.on("ondisposing", args.ondisposing.bind(this)); }//this.ondisposing = args.ondisposing;
-            if (args.ondisposed) { this.on("ondisposed", args.ondisposed.bind(this)); }//this.ondisposed = args.ondisposed;
-            if (args.onconfig) { this.on("onconfig", args.onconfig.bind(this)); }//this.onconfig = args.onconfig;
-            if (args.onsetup) { this.on("onsetup", args.onsetup.bind(this)); }//this.onconfig = args.onconfig;
-            if (args.setup) { this.setup = args.setup; /*this.on("setup", args.setup.bind(this));*/ }// this.setup = args.setup;
-            if (args.initializeComponent) { this.on("initializeComponent", args.initializeComponent.bind(this)); }// this.setup = args.setup; 
+            })
+
+            if (args.setup) { this.on("setup", args.setup); /*this.setup = args.setup; this.on("setup", args.setup.bind(this));*/ }// this.setup = args.setup; 
             Object.keys(args).forEach(k => {
-                if (k != 'props' && k !== 'preconfig' && k !== 'oncreating' && k !== 'oncreated' && k !== 'onbuilding' && k !== 'onbuilded' && k !== 'ondisposing' && k !== 'ondisposed' && k !== 'onconfig' && k != 'setup') {
+                if (k != 'onsetup' && k != 'props' && k !== 'preconfig' && k !== 'oncreating' && k !== 'oncreated' && k !== 'onbuilding' && k !== 'onbuilded' && k !== 'ondisposing' && k !== 'ondisposed' && k !== 'onconfig' && k != 'setup') {
                     assigned[k] = args[k];
                 }
             })
@@ -617,19 +794,6 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
 
 
 
-        this.setText = this.setText.bind(this);
-        this.add = this.add.bind(this);
-        this.setTempContent = this.setTempContent.bind(this);
-        this.build = this.build.bind(this);
-        this.dispose = this.dispose.bind(this);
-        this.flush = this.flush.bind(this);
-        this.clear = this.clear.bind(this);
-        this.show = this.show.bind(this);
-        this.hide = this.hide.bind(this);
-        this.on = this.on.bind(this);
-        this.addHandler = this.addHandler.bind(this);
-        this.removeHandler = this.removeHandler.bind(this);
-        this.using = this.using.bind(this);
 
 
         //Object.assign(this, props)
@@ -677,25 +841,16 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
         }
 
 
-
-
-        this._.event.oncreating();
-        this._.event.preconfig();
-        if (this['intervention'] && this['intervention']['preconfig']) {
-            //this['intervention']['onconfig'] = this['intervention']['onconfig'].bind(this);
-            this['intervention']['preconfig'](this);
+        if (this.props && this.props["ref"] && typeof this.props['ref'] === 'function') {
+            this.props["ref"](this);
         }
 
+        if (this.initializeComponent) { this.initializeComponent = this.initializeComponent.bind(this); };
 
-        if (this.onconfig) { this.onconfig(this as any); }
-        if (this['intervention'] && this['intervention']['onconfig']) {
-            //this['intervention']['onconfig'] = this['intervention']['onconfig'].bind(this);
-            this['intervention']['onconfig'](this);
-        }
-
-        this._emitCollection?.get("onconfig")?.forEach(cb => {
+        this._emitCollection?.get("initializeComponent")?.forEach(cb => {
             cb(this);
         })
+
 
 
 
@@ -707,6 +862,7 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
         */
 
         this.controls.ItemAdded = (item: any) => {
+
             if (this.isRendered) this._.methods.itemadd(this.controls.length - 1, item);
             this.onChildAdded && this.onChildAdded(this, item, this.controls.length - 1);
         }
@@ -723,22 +879,40 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
         this.controls.onItemRemoved = (item, index) => {
             this.onChildRemoved && this.onChildRemoved(this, item as any);
         }
-        if (this.oncreated) this.oncreated(this as any);
-        this._emitCollection?.get("oncreated")?.forEach(cb => {
-            cb(this);
-        })
+
         this._.instanced = true;
-
-
-
-        //this.element["model"] = this;
-
         if (!ElementModelMap.has(this.element)) {
             ElementModelMap.set(this.element, this as any);
         }
 
+        // Promise.resolve().then(x => {
+        //     if (this.isDisposed) { return }
 
+        // })
+
+        // if (window.queueMicrotask != undefined || window.queueMicrotask != null) {
+        //     queueMicrotask(() => {
+        //         if (this.isDisposed) { return }
+        //         this._.event.preconfig.bind(this)();
+        //         this._.event.onconfig.bind(this)();
+        //     })
+        // } else if (window.requestIdleCallback != null || window.requestIdleCallback != undefined) {
+        //     window.requestIdleCallback(() => {
+        //         if (this.isDisposed) { return }
+        //         this._.event.preconfig.bind(this)();
+        //         this._.event.onconfig.bind(this)();
+        //     })
+        // } else {
+        //     window.setTimeout(() => {
+        //         if (this.isDisposed) { return }
+        //         this._.event.preconfig.bind(this)();
+        //         this._.event.onconfig.bind(this)();
+        //     }, 0);
+        // }
+
+        this._.event.oncreated();
     }
+
     private _iswait: boolean = false;
     private get iswait(): boolean {
         if (this._iswait === true) {
@@ -787,7 +961,7 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
     bind: Directive = new Directive(this as any);
     isFragment: boolean = false;
     context: IApplicationService = ApplicationService.current;
-    controls: Collection<IControl<any, any, any>> = new Collection();
+    controls: ControlCollectionList<IControl<any, any, any>> = new ControlCollectionList(this);
     private _parent: IControl<ElementTypes, any, any> = null as any;
     public get parent(): IControl<ElementTypes, any, any> {
         return this._parent;
@@ -802,64 +976,61 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
     element: ElementType = null as any;
     async build(target?: any) {
         if (this.isDisposed) { return }
-        if (this.name) {
-            console.error('name', this.name, this);
-        }
-        if (this.onupdating) this.onupdating(this as any, { data: this.model, field: '', source: 'building' })
-        if (this["ref"]) { this["ref"](this); }
+        this._.event.onconfig.bind(this)();
 
+        if (this.options.config.propSource['renderTo']) {
+            var renderTo = this.options.config.propSource['renderTo'];
+            if (typeof renderTo === 'function') {
+                renderTo = renderTo(this);
+            }
+            if (renderTo != null || renderTo != '') {
+                if (renderTo instanceof Component) {
+                    target = renderTo.element;
+                } else if (typeof renderTo == 'string') {
+                    target = document.querySelectorAll(renderTo)[0]
+                } else {
+                    target = renderTo;
+                }
+            }
+        }
+        // if ((this.element instanceof Text || this.element instanceof Comment) && (this.parent.element instanceof Text || this.parent.element instanceof Comment)) { 
+
+        // } 
+
+        if (this["ref"] && typeof this["ref"] === 'function') {
+            this["ref"](this);
+        }
         if (this['intervention'] && this['intervention']['ref']) {
-            //this['intervention']['onconfig'] = this['intervention']['onconfig'].bind(this);
             this['intervention']['ref'](this);
         }
 
-        var _this = this;
-        if (this.props) {
-            Object.keys(this.props).forEach(txf => {
-                delete this[txf];
-            })
-        }
-        try {
-            if (this.props && this.props['container']) {
+        if (this.onupdating) this.onupdating(this as any, { data: this.model, field: '', source: 'building' })
 
-                var tb;
-                if (typeof this.props['container'] === 'function') {
-                    tb = this.props['container']();
-                } else {
-                    tb = this.props['container'];
-                }
-                if (typeof tb === 'string') {
-                    target = document.getElementsByTagName(tb)[0]
-                } else if (tb instanceof Element) {
-                    target = tb;
-                }
-            }
+
+
+
+        var _this = this;
+        // if (this.props) {
+        //     Object.keys(this.props).forEach(txf => {
+        //         delete this[txf];
+        //     })
+        // }
+        try {
 
             if (this.isRendered) {
-
-                // if (this.props && this.props['BuildTo']) {
-                //     console.error("render to target")
-                // }
-
-                //filter(t => t.isRendered === false || t.isRendered === undefined || t.isRendered === null)
-
-                this.controls.forEach((item, index) => {
-                    _this._.methods.itemadd(index, item);
-                })
-
                 if (_this.parent) {
                     _this.parent['_'].methods.AppendElement(this);
                 }
+                this.controls.forEach((item, index) => {
+                    _this._.methods.itemadd(index, item);
+                })
                 return;
             };
 
 
             const resume = async (self) => {
 
-                //self._.isInited == false && 
-                if (self['intervention'] && self['intervention']['preconfig']) {
-                    self['intervention']['preconfig'](self)
-                }
+                this._.event.preconfig.bind(this)();
                 self._.isInited = true;
 
                 if (self._.initializing.wait()) {
@@ -875,24 +1046,14 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
 
                 if (target) {
                     target.append(self.element)
-                    // console.error('orjinale ekle', this.element)
                 } else {
                     if (self.parent) {
-                        // const array = Array.prototype.slice.call(this.parent.element?.parentElement?.childNodes);
-                        // var ooLength = this.parent.controls.filter(t => t.isRendered).length;
-                        // var currentLength =   (array.indexOf(this.parent.element) - ooLength) + this['insertTo'];
-
-                        // console.error('parent ekle',this.element,this.parent.element,array[currentLength],ooLength ,array.indexOf(this.parent.element))
                         self.parent['_'].methods.AppendElement(this);
-                    } else {
-                        // console.error('parent yokki')
                     }
                 }
 
 
                 var resume = true;
-
-
 
                 if (self.view && !self._.viewInit) {
                     self.isApplicationSecope = true;
@@ -950,7 +1111,6 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
                                 self.controls.add(item);
                             }
                         }
-                        //if (self.onconfig) self.onconfig(self);
                         if (self._.initializing.wait()) return;
 
                         if (self.iswait) {
@@ -971,15 +1131,7 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
                 self.isRendered = true;
                 self.bind.init();
 
-                if (self.onbuilded) { self.onbuilded(this); }
-
-                this._emitCollection?.get("onbuilded")?.forEach(cb => {
-                    cb(this);
-                })
-
-                if (self['intervention'] && self['intervention']['onbuilded']) {
-                    self['intervention']['onbuilded'](self)
-                }
+                self._.event.onbuilded();
                 this._.methods.addSlots();
 
             }
@@ -1003,7 +1155,7 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
             }
 
         } catch (error) {
-            console.error(error)
+            console.error('movi:' + error)
         }
 
         if (this['const']) {
@@ -1011,7 +1163,7 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
         }
     }
     updateState(deep: boolean = false, onlyChild: boolean = false) {
-
+        if (this.isDisposed) { return }
         try {
 
             const resume = async (self) => {
@@ -1033,6 +1185,7 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
         }
     }
     private disposeSlots() {
+        if (this.isDisposed) { return }
         try {
             if (this.ghostPlaceholder) {
                 this.ghostPlaceholder.dispose();
@@ -1082,7 +1235,7 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
                 cb(this);
             })
 
-            this.disposeSlots.call(this);
+            !this.isDisposed && this.disposeSlots && this.disposeSlots.call(this);
 
             self && self.bind && self.bind.dispose();
 
@@ -1174,7 +1327,7 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
             cb(this);
         })
 
-        this.disposeSlots.call(this);
+        !this.isDisposed && this.disposeSlots && this.disposeSlots.call(this);
 
         self.bind.dispose();
 
@@ -1230,7 +1383,7 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
         })
     }
     async clear(): Promise<any> {
-
+        if (this.isDisposed) { return }
         if (this.onupdated) this.onupdated(this as any, { data: this.model, field: '', source: 'clear' })
         return new Promise((resolveOuter: any) => {
             this.controls.forEach(async (control, index) => {
@@ -1246,73 +1399,64 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
 
     }
     async show() {
+        if (this.isDisposed) { return }
         if (this.sendedShow) { return }
-
-        if (this._.isMainComponent) {
-            this.controls.forEach(c => {
-                c.show();
-            })
-        } else {
-            this._.methods.addEnterTransition();
-            if (this.isRendered && this._.isHidden == true) {
-                this._.isHidden = false;
-                this.isVisible = true;
-                if (this._.replacedHidden && !this.parent) {
-                    document.body.appendChild(this.element);
-                } else {
-                    if (!this.parent || this.parent.element == null) {
-                        document.body.replaceChild(this.element, this._.placeholder);
-                    } else if (this._.placeholder.parentNode) {
-                        this._.placeholder.parentNode.replaceChild(this.element, this._.placeholder);
-                    }
-                }
-                //this._.methods.addEnterTransition(); 
+        if (this.isVisible) { return };
+        this._.methods.addEnterTransition();
+        this.isVisible = true;
+        if (!this.parent || this.parent.element == null) {
+            if (this._.placeholder.isConnected && this._.placeholder.parentNode) {
+                document.body.replaceChild(this.element, this._.placeholder);
             } else {
-                this._.isHidden = false;
-                this.isVisible = true;
+                document.body.appendChild(this.element);
             }
-            this._.methods.waitTransition('enter', () => { });
+        } else if (this._.placeholder.parentNode) {
+            this._.placeholder.parentNode.replaceChild(this.element, this._.placeholder);
         }
+        this._.methods.waitTransition('enter', () => { });
+
         if (this.onupdated) this.onupdated(this as any, { data: this.model, field: '', source: 'show' })
         if (this.onshow && this.sendedShow == false && this.isRendered) { this.sendedShow = true; this.onshow(this as any); }
     }
     private sendedShow = false;
     async hide() {
+        if (this.isDisposed) { return }
         this.sendedShow = false;
+        if (this.isRendered && !this.isVisible) { return };
+        // if (this._.isMainComponent) {
+        //     this.controls.forEach(c => { c.hide() })
+        // } else {
 
-        if (this._.isMainComponent) {
-            this.controls.forEach(c => { c.hide() })
-        } else {
-            if (this.isRendered && this._.isHidden == false) {
-                this._.isHidden = true;
-                this.isVisible = false;
-                this._.methods.addLeaveTransition();
-                await this._.methods.waitTransition('leave', () => {
-                    if (!this.parent || !this.parent.element) {
-                        document.body.replaceChild(this._.placeholder, this.element);
-                    } else if (this.element.parentNode != undefined) {
-                        this.element.parentNode.replaceChild(this._.placeholder, this.element);
-                    }
-                });
-
-            } else {
-                this._.replacedHidden = true;
-                this._.isHidden = true;
-                this.isVisible = false;
-                this.element.parentNode?.replaceChild(this._.placeholder, this.element);
+        //if (this.isRendered && this.isVisible) {
+        this.isVisible = false;
+        this._.methods.addLeaveTransition();
+        await this._.methods.waitTransition('leave', () => {
+            if (!this.parent || !this.parent.element) {
+                document.body.replaceChild(this._.placeholder, this.element);
+            } else if (this.element.parentNode != undefined) {
+                //this.element.parentNode.insertBefore(this._.placeholder, this.element);
+                //this.element.parentNode.removeChild(this.element);
+                this.element.parentNode.replaceChild(this._.placeholder, this.element);
             }
+        });
+        // } else if (!this.isRendered) {
+        //     this.isVisible = false;
+        //     this.element.parentNode?.replaceChild(this._.placeholder, this.element);
+        // }
 
-        }
+        // }
         if (this.onupdated) this.onupdated(this as any, { data: this.model, field: '', source: 'hidding' })
         if (this.onhide && this.isRendered) this.onhide(this as any);
     }
 
     signal(eventName: string | symbol, cb: (...args: any[]) => any, ...initialValues: any[]) {
+        if (this.isDisposed) { return }
         this._.on.add(this.context.on(eventName, cb));
         if (initialValues.length > 0) cb(...initialValues)
     }
     private _emitCollection: Map<any, Set<any>> = new Map<any, Set<any>>();
     on(event: baseemits, callback: (...args) => void, domEvent: boolean = false) {
+        if (this.isDisposed) { return }
         if (event) {
             if (domEvent) {
                 this.addHandler(event as any, callback);
@@ -1327,6 +1471,7 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
         }
     }
     off(event: baseemits, callback: (...args) => void | null, domEvent: false) {
+        if (this.isDisposed) { return }
         if (event) {
             if (domEvent) {
                 this.removeHandler(event as any);
@@ -1342,6 +1487,7 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
         }
     }
     invoke(event: baseemits, ...args) {
+        if (this.isDisposed) { return }
         if (this._emitCollection.has(event)) {
             this._emitCollection?.get(event)?.forEach(e => {
                 e(...args);
@@ -1350,6 +1496,7 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
     }
 
     addHandler(event: string, callback: (e: Event | UIEvent | any, sender: IControl<ElementType, any, any>) => any): IControl<ElementType, any, any> {
+        if (this.isDisposed) { return this }
         if (this.element === null || this.element === undefined) {
             return this as any
         }
@@ -1378,17 +1525,28 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
 
                 value: (ev: Event | any) => {
 
-                    if (event.options.trusted === true && !ev.isTrusted) {
-                        return;
-                    }
-                    if (event.options.self) {
-                        if ((ev as Event).target !== sender.element) {
+                    var recall = () => {
+                        if (event.options.trusted === true && !ev.isTrusted) {
                             return;
                         }
-                    }
+                        if (event.options.self) {
+                            if ((ev as Event).target !== sender.element) {
+                                return;
+                            }
+                        }
 
-                    if (splt.length > 1 && ev instanceof KeyboardEvent) {
-                        if (ev['key']?.toLowerCase() == splt[1].toLowerCase()) {
+                        if (splt.length > 1 && ev instanceof KeyboardEvent) {
+                            if (ev['key']?.toLowerCase() == splt[1].toLowerCase()) {
+                                if (event.options.prevent === true) {
+                                    ev.preventDefault();
+                                }
+                                if (event.options.stop === true) {
+                                    ev.stopPropagation();
+                                }
+                                callback(ev, sender as any)
+                            }
+                        }
+                        else {
                             if (event.options.prevent === true) {
                                 ev.preventDefault();
                             }
@@ -1398,15 +1556,14 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
                             callback(ev, sender as any)
                         }
                     }
-                    else {
-                        if (event.options.prevent === true) {
-                            ev.preventDefault();
+                    Promise.resolve().then(() => {
+                        if (!queueMicrotask) {
+                            queueMicrotask(recall);
+                        } else {
+                            recall();
                         }
-                        if (event.options.stop === true) {
-                            ev.stopPropagation();
-                        }
-                        callback(ev, sender as any)
-                    }
+                    })
+
                 }
             };
 
@@ -1446,6 +1603,7 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
         return this as any;
     }
     removeHandler(event: string): IControl<ElementType, any, any> {
+        if (this.isDisposed) { return this }
         var xname = event.trim();
         xname.split(" ").forEach(eventName => {
             var spliter = ".";
@@ -1479,12 +1637,19 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
     isRendered: boolean = false;
     isDisposed: boolean = false;
     isConnected: boolean = false;
-    isVisible: Boolean = true;
-    style(properties: styleKeys): IControl<ElementType, any, any> {
+    isVisible: boolean = false;
+
+    style(properties: styleKeys | string): IControl<ElementType, any, any> {
+        if (this.isDisposed) { return this }
         if (this.element instanceof HTMLElement) {
-            Object.entries(properties).forEach(t => {
-                (this.element as any).style[toKebab(t[0])] = t[1];
-            });
+            if (typeof properties === 'string') {
+                this.attr.add({ 'style': properties });
+            } else {
+                Object.entries(properties).forEach(t => {
+                    (this.element as any).style[toKebab(t[0])] = t[1];
+                });
+            }
+
         }
         return this as any;
     };
@@ -1498,31 +1663,48 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
     doWork<T>(waitable: Promise<T> | PromiseLike<T>): Promise<T> {
         return waitable.then(
             (value: T) => {
-                if (this && !this.isDisposed) { return value } else throw "Component is disposed";
+                if (this && !this.isDisposed) {
+                    return value
+                } else {
+                    return new Error('Component is disposed');
+                };
             }) as Promise<T>;
     }
     settings?: { isRouterView?: boolean | undefined; keepAlive?: boolean | undefined; transition?: { name?: string | undefined; } | undefined; } | undefined;
     options: {
         authorize: boolean,
         headers: Object,
+        settings: object,
+        config: {
+            argSource: object,
+            propSource: object
+        }
     } = {
             authorize: false,
-            headers: []
+            headers: null as any,
+            settings: {} as any,
+            config: {
+                argSource: {} as any,
+                propSource: {} as any
+            }
         }
     public model: any;
     useModel<T extends object>(model: T): T
     useModel(model: object) {
+        if (this.isDisposed) { return }
         var r = new ReactiveEngine();
         var m = r.reactive(model);
         this._.modelInstances.add(r);
         return m;
     }
     onupdating(sender: caller, e: baseeventargs) {
+        if (this.isDisposed) { return }
         this._emitCollection?.get("onupdating")?.forEach(cb => {
             cb(sender, e);
         })
     };
     onupdated(sender: caller, e: baseeventargs) {
+        if (this.isDisposed) { return }
         this._emitCollection?.get("onupdated")?.forEach(cb => {
             cb(sender, e);
         })
@@ -1621,6 +1803,7 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
         return result;
     }
     getFirstElement(): IControl<any, any, any> {
+
         if (!(this.element instanceof Text) && !(this.element instanceof Comment)) {
             return this;
         } else {

@@ -78,6 +78,7 @@ export interface ControlProps<caller, Props> extends CommonEventHandlers {
     onupdating?(sender: caller, e: baseeventargs): void;
     onupdated?(sender: caller, e: baseeventargs): void;
     initializeComponent?(sender: caller);
+    renderTo?: any;
 }
 
 
@@ -161,7 +162,7 @@ export interface IControl<ElementType extends ElementTypes, Props, caller> exten
     on(event: baseemits, callback: (sender, ...args) => void, domEvent: boolean);
     off(event: baseemits, callback: (sender, ...args) => void, domEvent: boolean);
     invoke(event: baseemits, ...args);
-    addHandler(event: string, callback: (e: Event|UIEvent|any, sender: IControl<ElementType, Props, caller>) => any): IControl<ElementType, Props, caller>;
+    addHandler(event: string, callback: (e: Event | UIEvent | any, sender: IControl<ElementType, Props, caller>) => any): IControl<ElementType, Props, caller>;
     removeHandler(event: string): IControl<ElementType, Props, caller>;
     attr: controlAttribute<ElementType>;
     class: IClass<ElementType>;
@@ -169,7 +170,7 @@ export interface IControl<ElementType extends ElementTypes, Props, caller> exten
     isDisposed: boolean;
     isConnected: boolean;
     isVisible: Boolean;
-    style(properties: styleKeys): IControl<ElementType, Props, caller>;
+    style(properties: styleKeys | string): IControl<ElementType, Props, caller>;
     autostyle: controlStyle<ElementType>;
     view?(): any;
     using<T>(waitable: Promise<any>, onfulfilled?: ((value: T) => T | PromiseLike<T>) | undefined | null, onrejected?: ((reason: any) => never | PromiseLike<never>) | undefined | null);
@@ -181,10 +182,15 @@ export interface IControl<ElementType extends ElementTypes, Props, caller> exten
     onhide?(sender: caller): void;
     onChildAdded?(sender: this, child: any, index: number);
     onChildRemoved?(sender: this, child: any);
-    getFirstElement():IControl<any,any,any> ;
-    options?: {
-        authorize?: boolean,
-        headers?: Object,
+    getFirstElement(): IControl<any, any, any>;
+    options: {
+        authorize: boolean,
+        headers: Object,
+        settings: object,
+        config: {
+            argSource: object,
+            propSource: object
+        }
     }
-    doWork<T>(waitable: Promise<T> | PromiseLike<T>):Promise<T>
+    doWork<T>(waitable: Promise<T> | PromiseLike<T>): Promise<T>
 }
