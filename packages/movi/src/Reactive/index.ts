@@ -26,19 +26,23 @@ export function reactiveListeners(model?): ReactiveListeners {
     return engine.TargetMap;
 }
 
-export function reactive<T extends Object>(model: T): UnwrapNestedRefs<T>{
+export function reactive<T extends Object>(model: T): UnwrapNestedRefs<T> {
     return engine.reactive(model);
+}
+
+export function reactiveCreate<T extends Object>(model: T): UnwrapNestedRefs<T> {
+    return engine.reactiveCreate(model);
 }
 
 export function hook<T>(data: T): UnwrapValueRefs<T> {
     return engine.hook<T>(data);
-} 
+}
 
 export function effect(cb: () => any) {
     return engine.effect(cb);
 }
 
-export function registerEffect(dir:IDirective<any>) {
+export function registerEffect(dir: IDirective<any>) {
     return engine.registerEffect(dir);
 }
 
@@ -50,5 +54,14 @@ export function dynamicRender(cb: () => any) {
     return engine.dynamicRender(cb);
 }
 
+export function freezone(cb: () => any) {
+    engine.pauseTracking();
+    cb();
+    engine.resetTracking();
+}
+
+export function deepClone(item) {
+    return engine.deepClone(item);
+}
+
 export { ReactiveEngine };
- 

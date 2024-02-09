@@ -1,6 +1,7 @@
 import { IControl } from "./abstractions";
 import { ApplicationMiddleware, ApplicationService } from "./ApplicationService";
 import { Component } from "./Component";
+import { dom } from "./core/Dom";
 import { getTransitionInfoFromElement } from "./core/transition";
 export let isBusy: boolean = false;
 export class RouterView extends Component<any, any>{
@@ -35,9 +36,9 @@ export class RouterView extends Component<any, any>{
         super.clear();
     }
     constructor() {
-        super(document.createComment('router-view'), { settings: { isRouterView: true } });
+        super(dom.createComment('rw'), { settings: { isRouterView: true } });
         this.isFragment = true;
-        (this as any)._.isMainComponent = true; 
+        (this as any)._.isMainComponent = true;
     }
     previouspage;
     currentlist = new Set();
@@ -54,10 +55,8 @@ export class RouterView extends Component<any, any>{
 
         const complete = () => {
             this.current = page;
-           ;
             ApplicationService.current['lastPage'] = page;
-
-            try { 
+            try {
                 this.add(page)
                 if (page['nodes']) {
                     page['nodes'].forEach(async c => {
@@ -69,7 +68,7 @@ export class RouterView extends Component<any, any>{
                     })
                 } else {
                     //****this.parent.element.insertBefore(page.element, this.element);
-                } 
+                }
                 //(page as any)._.addEnterTransition();
 
                 // (page as any)._.methods.waitTransition('enter', () => {
@@ -109,8 +108,8 @@ export class RouterView extends Component<any, any>{
             //     this.current?.dispose(() => { });
             //     complete();
             // } 
-            this.current?.dispose(() => {complete(); });
-            
+            await this.current?.dispose();
+            complete(); 
         } else {
             complete();
         }

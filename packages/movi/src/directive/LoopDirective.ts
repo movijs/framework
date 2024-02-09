@@ -4,7 +4,7 @@ import { CheckType, DirectiveBindingType } from "../abstractions/DirectiveBindin
 import Bindable from "../Reactive/Bindable";
 import { getRaw, pauseTracking, resetTracking } from "../Reactive/common";
 import { IFxMapper } from "../Reactive/ReactiveEngine";
-import { ApplicationService, Component, Lazy } from "..";
+import { ApplicationService, Component, Lazy, ReactiveEngine, deepClone } from "..";
 
 
 export class LoopDirectiveSettings {
@@ -73,10 +73,8 @@ export class LoopDirective implements IDirective<LoopDirectiveSettings>{
                 items.slice(current, current + this.pageCount).forEach((t: any, i: any) => {
                     var elm = this.build(t, i + current);
                     if (elm) {
-                        elm['index'] = i + current;
                         elm['isStart'] = true;
-                        this._source.controls.add(elm)
-
+                        this._source.controls.add(elm);
                         this._source.parent && this._source.parent.onChildAdded && this._source.parent.onChildAdded(this._source.parent, elm, i + current);
                     }
                 });
@@ -96,10 +94,8 @@ export class LoopDirective implements IDirective<LoopDirectiveSettings>{
             items.forEach((t: any, i: any) => {
                 var elm = this.build(t, i);
                 if (elm) {
-                    elm['index'] = i;
                     elm['isStart'] = true;
                     this._source.controls.add(elm)
-
                     this._source.parent && this._source.parent.onChildAdded && this._source.parent.onChildAdded(this._source.parent, elm, i);
                 }
             })
@@ -198,15 +194,34 @@ export class LoopDirective implements IDirective<LoopDirectiveSettings>{
                         if (!exit) {
                             var elm = this.build(item, index + current);
                             if (elm) {
-                                elm['index'] = index + current;
                                 elm['isStart'] = isStart;
                                 elm.options.settings["__loop__item__"]
                                 Source.controls.insert(index + current, elm);
                                 Source.parent && Source.parent.onChildAdded && Source.parent.onChildAdded(Source.parent, elm, index + current);
                             }
                         } else {
-                            var elm = this._settings && this._settings.render ? this._settings.render(item, index + current) : null;
-                            exit = elm;
+                            var key;
+                            if (exit['__list_key__'] != undefined && exit['__list_key__'] != null) {
+                                key = this.findkey(item, exit['__list_key__']);
+                            } else {
+                                key = index;
+                            }
+
+                            if (key != exit['index'] && Source.controls.indexOf(exit) != index) {
+                                await exit.dispose();
+                                var elm = this.build(item, index + current);
+                                if (elm) {
+                                    elm['isStart'] = isStart;
+                                    elm.options.settings["__loop__item__"] = true;
+                                    Source.controls.insert(index + current, elm);
+                                    Source.parent && Source.parent.onChildAdded && Source.parent.onChildAdded(Source.parent, elm, index + current);
+                                }
+                                exit = elm;
+                            } else {
+                                // console.error(exit['index']);
+                                // var elm = this._settings && this._settings.render ? this._settings.render(item, index) : null;
+                                // exit = elm;
+                            }
                         }
                     }
                 })
@@ -231,20 +246,57 @@ export class LoopDirective implements IDirective<LoopDirectiveSettings>{
                         return;
                     }
                     // var elm = this._settings && this._settings.render ? this._settings.render(data, index) : null;
-                    var exit = this._source.controls.find(x => { return getRaw(x.__key__) === getRaw(item) });
+                    var exit = this._source.controls.find(x => { return getRaw(x.__key__) === getRaw(item) }); 
                     if (!exit) {
                         var elm = this.build(item, index);
                         if (elm) {
-                            elm['index'] = index;
                             elm['isStart'] = isStart;
                             elm.options.settings["__loop__item__"] = true;
                             Source.controls.insert(index, elm);
                             Source.parent && Source.parent.onChildAdded && Source.parent.onChildAdded(Source.parent, elm, index);
                         }
                     } else {
-                        var elm = this._settings && this._settings.render ? this._settings.render(item, index) : null;
-                        exit = elm;
-                        //console.error(exit,elm);
+                        var indexChanged = false;
+                        var _settings = exit?.options?.settings;
+                        if (_settings) {
+                            var ni = typeof _settings['ni'] == 'function' ? _settings['ni']() : _settings['ni'];
+                            var oi = _settings['oi'];
+                            if ((ni != undefined && oi != undefined) && ni != oi && Source.controls.indexOf(exit) != index) {
+                                indexChanged = true;
+                            } else if (ni == undefined || oi == undefined) {
+                                if (Source.controls.indexOf(exit) != index) {
+                                    indexChanged = true;
+                                }
+                            }
+                        } else { indexChanged = true; }
+                        if (indexChanged) {
+                            await exit.dispose();
+                            var elm = this.build(item, index);
+                            if (elm) {
+                                elm['isStart'] = isStart;
+                                elm.options.settings["__loop__item__"] = true;
+                                Source.controls.insert(index, elm);
+                                Source.parent && Source.parent.onChildAdded && Source.parent.onChildAdded(Source.parent, elm, index);
+                            }
+                            exit = elm;
+                        }
+                        // var key;
+                        // if (exit['__list_key__'] != undefined && exit['__list_key__'] != null) {
+                        //     key = this.findkey(item, exit['__list_key__']);
+                        // } else {
+                        //     key = index;
+                        // } 
+                        // if (key != exit['index']  && Source.controls.indexOf(exit) != index) { 
+                        //     await exit.dispose();
+                        //     var elm = this.build(item, index);
+                        //     if (elm) {
+                        //         elm['isStart'] = isStart;
+                        //         elm.options.settings["__loop__item__"] = true;
+                        //         Source.controls.insert(index, elm);
+                        //         Source.parent && Source.parent.onChildAdded && Source.parent.onChildAdded(Source.parent, elm, index);
+                        //     }
+                        //     exit = elm;
+                        // } 
                     }
                     // if (!this.wm.has(getRaw(item))) {
                     //     var elm = this.build(item, index);
@@ -279,6 +331,17 @@ export class LoopDirective implements IDirective<LoopDirectiveSettings>{
         if (this._source.onupdated) this._source.onupdated(this._source, { data: this._settings.Property, field: this._settings.FieldName, source: 'loop' });
         return
 
+    }
+    findkey(data, key: string) {
+        var keys = key.split(".");
+        if (keys.length > 1) {
+            var xk = keys.shift();
+            if (xk) {
+                return this.findkey(data[xk], keys.join("."))
+            }
+        } else {
+            return data[key]
+        }
     }
     awaiableSetup: boolean = false;
     setupCompleted = false;
@@ -332,7 +395,7 @@ export class LoopDirective implements IDirective<LoopDirectiveSettings>{
                 if (!this.wm.has(getRaw(item))) {
                     var elm = this.build(item, index);
                     if (elm) {
-                        elm['index'] = index;
+
                         elm['isStart'] = false;
                         Source.controls.insert(index, elm)
                     }
@@ -363,8 +426,8 @@ export class LoopDirective implements IDirective<LoopDirectiveSettings>{
             pauseTracking();
             this.wm.set(getRaw(data), elm);
             this.oldvalues.set(elm, getRaw(data));
-            (elm as any)['index'] = index;
             (elm as any)['__key__'] = data;
+            if (elm['__list_key__']) { (elm as any)['index'] = this.findkey(data, elm['__list_key__']); } else { (elm as any)['index'] = index; }
             resetTracking();
             elm.parent = this._source;
         }

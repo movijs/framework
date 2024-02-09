@@ -11,23 +11,31 @@ export function createGetter(engine: ReactiveEngine) {
         else if (p === Flags.IS_SUPERFICIAL) { return engine.superficial }
         else if (p === Flags.RAW && receiver === engine.ReactiveMap().get(target)) { return target }
         if (p === Flags.GET_SETUP) { return target }
-         
+
         const modelIsArray = Array.isArray(target)
-        if (!engine.isReadonly && modelIsArray && hasOwn(engine.arrayMethods.get, p)) { 
+        if (!engine.isReadonly && modelIsArray && hasOwn(engine.arrayMethods.get, p)) {
             addArrayStack(p);
-            var x = Reflect.get(engine.arrayMethods.get, p, receiver);  
+            var x = Reflect.get(engine.arrayMethods.get, p, receiver);
+
+            // debugger
+            // if (Array.isArray(target)) {
+            //     engine.arrayTriggerCache.forEach(ty => {
+            //         console.error(engine.arrayTriggerCache.get(target), ty, target);
+            //     })
+            // }
+
             return x;
-        }  
+        }
         if (typeof setupListener === 'function') {
             pauseTracking();
-            setupListener(target,p);
+            setupListener(target, p);
             closeSetup();
             resetTracking();
         }
-        
+
         var res = Reflect.get(target, p, receiver);
 
-       
+
         if (isSymbol(p) ? builtInSymbols.has(p) : isNonTrackableKeys(p as string)) { return res }
         if (!engine.isReadonly) { engine.track(target, p) }
         if (engine.superficial) { return res }

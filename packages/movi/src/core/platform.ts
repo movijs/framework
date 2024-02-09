@@ -42,20 +42,17 @@ export interface INodeProcess {
 	cwd: () => string;
 }
 
-declare const process: INodeProcess;
-declare const global: unknown;
-declare const self: unknown;
-
-
-export const globals: any = (typeof self === 'object' ? self : typeof global === 'object' ? global : {});
+declare const process: INodeProcess;  
+const $globalThis: any = globalThis;
 
 let nodeProcess: INodeProcess | undefined = undefined;
-if (typeof globals.movijs !== 'undefined' && typeof globals.movijs.process !== 'undefined') { 
-	nodeProcess = globals.movijs.process;
+if (typeof $globalThis.movi !== 'undefined' && typeof $globalThis.movi.process !== 'undefined') { 
+	nodeProcess = $globalThis.movi.process;
+} else if (typeof process !== 'undefined') { 
+	nodeProcess = process;
 }
-// else if (typeof process !== 'undefined') { 
-// 	nodeProcess = process;
-// }
+
+ 
 
 const isElectronProcess = typeof nodeProcess?.versions?.electron === 'string';
 const isElectronRenderer = isElectronProcess && nodeProcess?.type === 'renderer';
@@ -124,6 +121,6 @@ export const isLinuxSnap = _isLinuxSnap;
 export const isNative = _isNative;
 export const isElectron = _isElectron;
 export const isWeb = _isWeb;
-export const isWebWorker = (_isWeb && typeof globals.importScripts === 'function');
+export const isWebWorker = (_isWeb && typeof $globalThis.importScripts === 'function');
 export const isIOS = _isIOS;
 export const isMobile = _isMobile;

@@ -13,6 +13,7 @@ import { WaitDirective, WaitSettings } from "./waitDirective";
 import { AttributeHandlingDirective, AttributeHandlingSettings } from "./AttributeHandling";
 import { LogicDirective, LogicDirectiveSettings } from "./logicDirective";
 import { IDirective } from "../abstractions/IDirective";
+import { dom } from "../core/Dom";
 
 export type pickValues = {};
 
@@ -32,7 +33,7 @@ export class Directive {
     public attributeDirectives: Map<AttributeHandlingSettings, AttributeHandlingDirective> = new Map();
     public effecttorDirectives: Map<EffectDirectiveSettings, EffectDirective> = new Map();
     public logicDirectives: Map<LogicDirectiveSettings, LogicDirective> = new Map();
-
+    public loopDirectives: Map<LoopDirectiveSettings, LoopDirective> = new Map();
     public WaitInit: boolean = false;
     constructor(public owner: IControl<any, any, any>) {
         this.ChangeTarget = this.ChangeTarget.bind(this);
@@ -91,6 +92,11 @@ export class Directive {
         if (this.Configuration.ReloadSettings && this.relloadDirective) this.relloadDirective.dispose(this.Configuration.ReloadSettings, this.owner);
         if (this.Configuration.WaitSettings && this.waitDirective) this.waitDirective.dispose(this.Configuration.WaitSettings, this.owner);
         if (this.Configuration.LogicDirectiveSettings && this.logicDirective) this.logicDirective.dispose(this.Configuration.LogicDirectiveSettings, this.owner);
+        
+        this.loopDirectives.forEach((v, k) => {
+            v.dispose(k, k.fragment);
+        })
+        
         this.attributeDirectives.forEach((v, k) => {
             v.dispose(k, this.owner);
         })
@@ -113,6 +119,7 @@ export class Directive {
         if (this.Configuration.ReloadSettings && this.relloadDirective) return true;
         if (this.Configuration.WaitSettings && this.waitDirective) return true;
         if (this.Configuration.LogicDirectiveSettings && this.logicDirective) return true;
+        if (this.loopDirectives && this.loopDirectives.size > 0) return true;
         if (this.attributeDirectives.size > 0) { return true }
         if (this.effecttorDirectives.size > 0) { return true }
         return false;
@@ -124,6 +131,11 @@ export class Directive {
             if (d.Configuration && (d.Configuration.FieldName || d.Configuration.Property || d.Configuration.callback != null)) {
                 d.init(d.Configuration, this.owner);
             }
+        })
+
+        this.loopDirectives.forEach((v, k) => {
+            
+            v.init(k, k.fragment);
         })
 
         if (this.Configuration.LoopSettings && this.loopDirective) this.loopDirective.init(this.Configuration.LoopSettings, this.Configuration.LoopSettings.fragment);
@@ -138,6 +150,8 @@ export class Directive {
         if (this.Configuration.ReloadSettings && this.relloadDirective) this.relloadDirective.init(this.Configuration.ReloadSettings, this.owner);
         //if (this.Configuration.LogicDirectiveSettings && this.logicDirective) this.logicDirective.init(this.Configuration.LogicDirectiveSettings, this.owner);
         // if (this.Configuration.WaitSettings && this.waitDirective) this.waitDirective.init(this.Configuration.WaitSettings, this.owner);
+       
+
         this.logicDirectives.forEach((v, k) => {
             v.init(k, this.owner);
         })
@@ -152,7 +166,7 @@ export class Directive {
     }
 
     public async update(prop: any, key: any, type: string) {
-         
+
     }
     public setup(prop: any, key: any) {
 
@@ -287,37 +301,42 @@ export class Directive {
         return this;
     }
 
-    public loop(prop: any, key: string, itemTemplate: (data: any) => IControl<any, any, any>): Component<any,any>
-    public loop(callback: () => void, itemTemplate: (data: any) => IControl<any, any, any>): Component<any,any>
-    public loop(): Component<any,any> {
-        this.Configuration.LoopSettings = new LoopDirectiveSettings();
-        this.loopDirective = new LoopDirective();
+    public loop(prop: any, key: string, itemTemplate: (data: any) => IControl<any, any, any>): Component<any, any>
+    public loop(callback: () => void, itemTemplate: (data: any) => IControl<any, any, any>): Component<any, any>
+    public loop(): Component<any, any> {
+
+
+        const __LoopSettings = new LoopDirectiveSettings();
+        const __loopDirective = new LoopDirective();
 
         if (arguments.length === 3) {
-            this.Configuration.LoopSettings.Property = arguments[0]
-            this.Configuration.LoopSettings.FieldName = arguments[1];
-            this.Configuration.LoopSettings.render = arguments[2];
-            this.Configuration.LoopSettings.type = "expression";
+            __LoopSettings.Property = arguments[0]
+            __LoopSettings.FieldName = arguments[1];
+            __LoopSettings.render = arguments[2];
+            __LoopSettings.type = "expression";
         }
         else if (arguments.length === 2) {
             if (typeof arguments[0] === 'function') {
-                this.Configuration.LoopSettings.callback = arguments[0];
-                this.Configuration.LoopSettings.render = arguments[1];
-                this.Configuration.LoopSettings.type = "function";
+                __LoopSettings.callback = arguments[0];
+                __LoopSettings.render = arguments[1];
+                __LoopSettings.type = "function";
             }
             else if (Array.isArray(arguments[0])) {
-                this.Configuration.LoopSettings.callback = () => arguments[0];
-                this.Configuration.LoopSettings.render = arguments[1];
-                this.Configuration.LoopSettings.type = "function";
+                __LoopSettings.callback = () => arguments[0];
+                __LoopSettings.render = arguments[1];
+                __LoopSettings.type = "function";
             }
         }
-        var fr = new Component(document.createComment('map'),{});
-        this.Configuration.LoopSettings.fragment = fr;
+        var fr = new Component(dom.createComment('map'), {});
+        __LoopSettings.fragment = fr;
         this.owner.controls.add(fr);
+
+        this.loopDirectives.set(__LoopSettings, __loopDirective);
+
         if (this.owner.isRendered) {
-            if (this.Configuration.LoopSettings && this.loopDirective) this.loopDirective.init(this.Configuration.LoopSettings, fr);
-        }
-        return fr;
+            if (__LoopSettings && __loopDirective) __loopDirective.init(__LoopSettings, fr);
+        } 
+        return fr; 
     }
     public effect(callback: () => any): Directive {
 
@@ -451,22 +470,8 @@ export class Directive {
 
     public logic(state, cb) {
 
-        /*
-          var Settings = new EffectDirectiveSettings();
-        Settings.callback = callback;
-        Settings.type = "function";
-        var Directive = new EffectDirective();
-        this.effecttorDirectives.set(Settings, Directive);
-
-        // if (this.Configuration.EffectSettings == null) this.Configuration.EffectSettings = new EffectDirectiveSettings();
-        // this.effectDirective = new EffectDirective();
-        // this.Configuration.EffectSettings.callback = callback;
-        // this.Configuration.EffectSettings.type = "function";
-        if (this.owner.isRendered) {
-            Directive.init(Settings, this.owner);
-        }
-        */
-        var fr = new Frame();// new Component(document.createComment('logic'),{});
+         
+        var fr = new Frame({}); 
         this.owner.controls.add(fr);
 
         var Settings = new LogicDirectiveSettings();
@@ -478,18 +483,7 @@ export class Directive {
         if (this.owner.isRendered) {
             Directive.init(Settings, fr);
         }
-
-        
-        // this.Configuration.LogicDirectiveSettings = new LogicDirectiveSettings();
-        // this.logicDirective = new LogicDirective(fr);
-        // this.Configuration.LogicDirectiveSettings.logicalFn = state;
-        // this.Configuration.LogicDirectiveSettings.callback = cb;
-        // this.Configuration.LogicDirectiveSettings.type = "function";
-
-        // if (this.owner.isRendered) {
-        //     this.logicDirective.init(this.Configuration.LogicDirectiveSettings, fr);
-        //     // if (this.Configuration.WaitSettings && this.waitDirective) this.waitDirective.init(this.Configuration.WaitSettings, this.owner);
-        // }
+ 
         return this;
     }
 

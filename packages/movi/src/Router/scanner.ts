@@ -111,9 +111,7 @@ export default class Scanner {
     }
     private filterHtml(val: any) {
         var comp = moviComponent('div');
-        comp.bind.html(() => val);
-        // var el = document.createElement("div");
-        // el.innerHTML = val.replaceAll("<[^>]*>", " ").replaceAll("\\s+", " ").trim();
+        comp.bind.html(() => val); 
         return val.replaceAll("<[^>]*>", " ").replaceAll("\\s+", " ").trim(); //comp.element.textContent;
     }
     public parameters = {};

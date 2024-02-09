@@ -1,11 +1,10 @@
-import { globals, INodeProcess, isMacintosh, isWindows } from './platform';
+import { INodeProcess, isMacintosh, isWindows } from './platform';
 
 let safeProcess: Omit<INodeProcess, 'arch'> & { arch: string | undefined };
 declare const process: INodeProcess;
 
-// Native sandbox environment
-if (typeof globals.movijs !== 'undefined' && typeof globals.movijs.process !== 'undefined') {
-	const sandboxProcess: INodeProcess = globals.movijs.process;
+if (typeof globalThis.movi !== 'undefined' && typeof globalThis.movi.process !== 'undefined') {
+	const sandboxProcess: INodeProcess = globalThis.movi.process;
 	safeProcess = {
 		get platform() { return sandboxProcess.platform; },
 		get arch() { return sandboxProcess.arch; },
@@ -14,47 +13,29 @@ if (typeof globals.movijs !== 'undefined' && typeof globals.movijs.process !== '
 	};
 }
 
-// Native node.js environment
 else if (typeof process !== 'undefined') {
 	safeProcess = {
 		get platform() { return process.platform; },
 		get arch() { return process.arch; },
 		get env() { return process.env; },
-		cwd() { return process.env['MOVIJS_CWD'] || process.cwd(); }
+		cwd() { return process.env['MOVI_CWD'] || process.cwd(); }
 	};
 }
- 
+
 else {
-	safeProcess = { 
-		// Supported
+	safeProcess = {
 		get platform() { return isWindows ? 'win32' : isMacintosh ? 'darwin' : 'linux'; },
-		get arch() { return undefined; /* arch is undefined in web */ }, 
-		// Unsupported
+		get arch() { return undefined; },
 		get env() { return {}; },
 		cwd() { return '/'; }
 	};
 }
 
- 
+
 export const cwd = safeProcess.cwd;
 
-/**
- * Provides safe access to the `env` property in node.js, sandboxed or web
- * environments.
- *
- * Note: in web, this property is hardcoded to be `{}`.
- */
 export const env = safeProcess.env;
 
-/**
- * Provides safe access to the `platform` property in node.js, sandboxed or web
- * environments.
- */
 export const platform = safeProcess.platform;
 
-/**
- * Provides safe access to the `arch` method in node.js, sandboxed or web
- * environments.
- * Note: `arch` is `undefined` in web
- */
 export const arch = safeProcess.arch;

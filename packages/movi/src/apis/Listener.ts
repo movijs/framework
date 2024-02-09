@@ -1,5 +1,6 @@
 import { BaseProp, Component } from "../Component";
 import { MoviComponent } from "../ComponentBase";
+import { Frame } from "../Frame";
 
 export function promises<T>(lazy: Promise<T>): Promise<T> {
     return lazy
@@ -52,9 +53,9 @@ export class Listener extends Component<any, ListenerProps> {
                 }
                 element = this.getDefault(element);
                 if (element instanceof Promise) {
-                    const _plc = new Component({});
+                    const _plc = new Frame({});
                     await element.then(async x => {
-                        _plc.add(await x.default);
+                        _plc.navigate(await x.default);
                     })
                     res.push(_plc);
                 } else {

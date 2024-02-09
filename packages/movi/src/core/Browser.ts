@@ -1,5 +1,6 @@
 import { Disposable, markAsSingleton } from "./lifecycle";
 import { Emitter, Event } from "./Event";
+import { dom } from "./Dom";
 const userAgent = navigator.userAgent;
 export const isFirefox = (userAgent.indexOf('Firefox') >= 0);
 export const isWebKit = (userAgent.indexOf('AppleWebKit') >= 0);
@@ -125,7 +126,7 @@ class PixelRatioImpl extends Disposable {
     }
 
     private _getPixelRatio(): number {
-        const ctx: any = document.createElement('canvas').getContext('2d');
+        const ctx: any = dom.createElement('canvas').getContext('2d');
         const dpr = window.devicePixelRatio || 1;
         const bsr = ctx.webkitBackingStorePixelRatio ||
             ctx.mozBackingStorePixelRatio ||

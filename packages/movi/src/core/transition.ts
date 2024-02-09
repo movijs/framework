@@ -1,5 +1,6 @@
 import { ANIMATION, CSSTransitionInfo, TRANSITION, TransitionProps } from "../abstractions/transition";
-var fxElement = document.createElement('div');
+import { dom } from "./Dom";
+var fxElement = dom.createElement('div');
 
 export function getTransitionInfo(
     el: Element,
@@ -11,7 +12,7 @@ export function getTransitionInfo(
     var styles;
     if (!el.isConnected) {
         fxElement.setAttribute('style', 'width:0!important;height:0!important;display:none');
-        document.body.appendChild(fxElement);
+        dom.body.appendChild(fxElement);
         fxElement.setAttribute('class', name);
         isnew = true;
         styles = window.getComputedStyle(fxElement);

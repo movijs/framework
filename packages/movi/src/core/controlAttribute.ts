@@ -27,31 +27,51 @@ export class controlAttribute<ElementType extends ElementTypes> implements IAttr
                         attrval = 'preserveAspectRatio'
                     }
                     var self = this;
-
+                    var funcAttr = /(disabled)|(selected)/g;
                     if (typeof attrval === 'function') {
                         this._parent.bind.effect(() => {
+                             
                             var v = attrval();
-                            if (cn == 'value') {
-                                (self._parent.element as HTMLInputElement).value = v;
+                            if (funcAttr.test(cn)) { 
+                                if (v == true) {
+                                    (self._parent.element as Element).setAttribute(cn, '')
+                                } else {
+                                    (self._parent.element as Element).removeAttribute(cn) 
+                                }
                             } else {
-                                (self._parent.element as Element).setAttribute(cn, v)
-                            }
+                                if (cn == 'value') {
+                                    (self._parent.element as HTMLInputElement).value = v;
+                                } else {
+                                    (self._parent.element as Element).setAttribute(cn, v)
+                                }
+                            } 
                         });
                     } else if (typeof attrval === 'boolean') {
-                        if (attrval == true) {
-                            if (cn == 'value') {
-                                (self._parent.element as HTMLInputElement).value = '';
-                            } else {
+                        
+                       
+                        if (funcAttr.test(cn)) {
+                            if (attrval == true) {
                                 (self._parent.element as Element).setAttribute(cn, '')
+                            } else {
+                                this._parent.element.removeAttribute(cn) 
                             }
                         } else {
-                            if (cn == 'value') {
-                                (self._parent.element as HTMLInputElement).value = '';
+                            if (attrval == true) {
+                                if (cn == 'value') {
+                                    (self._parent.element as HTMLInputElement).value = '';
+                                } else {
+                                    (self._parent.element as Element).setAttribute(cn, '')
+                                }
                             } else {
-                                this._parent.element.removeAttribute(cn)
-                            }
-
+                                if (cn == 'value') {
+                                    (self._parent.element as HTMLInputElement).value = '';
+                                } else {
+                                    this._parent.element.removeAttribute(cn)
+                                }
+    
+                            } 
                         }
+                       
                     } else if (cn === 'class' || cn === 'className' || cn === 'classname') {
                         this._parent.class.add(attrval);
                     } else if (attrval === undefined || attrval === null || attrval === '') {

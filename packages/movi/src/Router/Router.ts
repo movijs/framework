@@ -1,6 +1,6 @@
 import { IControl } from "../abstractions/IControl";
 import { IRouter } from "../abstractions/Router";
-import {   ApplicationService } from "../ApplicationService";
+import { ApplicationService } from "../ApplicationService";
 import { NavigateEventArgs } from "../core/NavigateEventArgs";
 import { RouterView } from "../RouterView";
 import { reactive } from "../Reactive";
@@ -16,7 +16,7 @@ export class Router implements IRouter {
 
         this.removeUriListener();
         this.addUriListener();
-        
+
     }
     defaultLayout: any;
     values: { name: string; value: string; }[] = null as any;
@@ -57,9 +57,9 @@ export class Router implements IRouter {
 
         if (this.prev !== uri) {
 
-            var fx = this.manager.GetRouteDetailsFromString(uri);  
+            var fx = this.manager.GetRouteDetailsFromString(uri);
             var ea = new NavigateEventArgs();
-            ea.currentPage = ApplicationService.current['lastPage'] as unknown as IControl<any,any,any>;
+            ea.currentPage = ApplicationService.current['lastPage'] as unknown as IControl<any, any, any>;
             ea.route = {
                 path: uri,
                 extend: fx.extend,
@@ -76,7 +76,7 @@ export class Router implements IRouter {
                     p = self.manager.routeNames.get(ea.redirect).path;
                 }
 
-               
+
                 var nxt = self.manager.GetRouteDetailsFromString(p);
 
                 var route = {
@@ -94,15 +94,15 @@ export class Router implements IRouter {
 
                 self.previousRoute = ea;
 
-                var c = await self.manager.GetController(p, (found, pages) => { 
+                var c = await self.manager.GetController(p, (found, pages) => {
                     if (!found) {
                         self.manager.getNotFound();
-                    }  
-                    
-                  
+                    }
+
+
                 });
                 self.navigate(p, bypas);
-                ApplicationService.current.internal.notify('routeChanged') 
+                ApplicationService.current.internal.notify('routeChanged')
 
             }
             if (this.gate) {
@@ -121,24 +121,24 @@ export class Router implements IRouter {
     public navigate(url: string, bypas: boolean = false) {
         this.scrollState.x = window.scrollX;
         this.scrollState.y = window.scrollY;
-
-        if (this.mode === "history") {
-            if (window.history != null) {
-                if (!url.startsWith("/")) {
-                    url = "/" + url;
+        if (window.location.protocol != 'file:') {
+            if (this.mode === "history") {
+                if (window.history != null) {
+                    if (!url.startsWith("/")) {
+                        url = "/" + url;
+                    }
+                    this.prev = url;
+                    if (!bypas) { window.history.pushState({}, '', url); };
+                    if (this.navigated) this.navigated.call(this)
                 }
-                this.prev = url;
-                if (!bypas) { window.history.pushState({}, '', url); };
-                if (this.navigated) this.navigated.call(this)
+            } else {
+                if (this.prev !== url) {
+                    this.prev = url;
+                    if (!bypas) { window.location.hash = url };
+                    if (this.navigated) this.navigated.call(this)
+                }
             }
-        } else {
-            if (this.prev !== url) {
-                this.prev = url;
-                if (!bypas) { window.location.hash = url };
-                if (this.navigated) this.navigated.call(this)
-            }
-        }
-      
+        } 
     }
     public HandlePopChange() {
         this.trigger(this.CurrentPage, true);
@@ -154,7 +154,7 @@ export class Router implements IRouter {
 
     addUriListener() {
         if (this.mode === "history") {
-            window.addEventListener('popstate', this.HandlePopChange.bind(this));             
+            window.addEventListener('popstate', this.HandlePopChange.bind(this));
         } else {
             window.addEventListener('hashchange', this.HandleHashChange.bind(this))
         }

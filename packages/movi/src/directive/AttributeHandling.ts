@@ -71,9 +71,9 @@ export class AttributeHandlingDirective implements IDirective<AttributeHandlingS
         } else if (this._settings.oldValue == null) {
             r = false;
         }
-
+       
         if (r === true) {
-            this._settings.attributes.forEach(atr => {
+            this._settings.attributes.forEach(atr => {  
                 if (this._source.element[atr]) this._source.element[atr]();
             })
         }

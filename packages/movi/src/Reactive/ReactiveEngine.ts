@@ -45,14 +45,16 @@ export class FxMapper implements IFxMapper {
     dispose() {
         this.parent?.delete(this);
         this.depends.clear();
-        
-        clearAllDepFX(this); 
+
+        clearAllDepFX(this);
     }
 }
 
 export const ReactiveEngineMapper = new WeakSet<ReactiveEngine>();
 const AllreactiveMap: WeakMap<any, any> = new WeakMap();
-window['arm'] = AllreactiveMap;
+
+function armgetter() { return AllreactiveMap; }
+
 export class ReactiveEngine {
     constructor() {
         this.reactive = this.reactive.bind(this);
@@ -67,7 +69,8 @@ export class ReactiveEngine {
         ReactiveEngineMapper.add(this);
     }
     DisposeMapper = new LinkedList();
-    dispose() { 
+    arrayTriggerCache = new Map<any, { method: string, key: any, value: any }>();
+    dispose() {
         var cnt = true;
         while (cnt == true) {
             if (this.DisposeMapper.size > 0) {
@@ -124,7 +127,8 @@ export class ReactiveEngine {
         //system.GC(this);
     }
     //ReactiveMap: WeakMap<any, any> = new WeakMap();
-    ReactiveMap: () => WeakMap<any, any> = () => AllreactiveMap; //new WeakMap();
+    arm = armgetter();
+    ReactiveMap: () => WeakMap<any, any> = () => armgetter(); //new WeakMap(); 
     TargetMap: ReactiveListeners = new Map<any, Map<any, Set<FxMapper>>>();
     activeCallback: any;
     isReadonly: boolean = false;
@@ -202,6 +206,10 @@ export class ReactiveEngine {
             return proxy;
         }
 
+    }
+
+    reactiveCreate<T extends object>(model: T): UnwrapNestedRefs<T> {
+        return this.reactive(this.deepClone(model));
     }
 
     hook<T>(val: any): UnwrapValueRefs<T> {
@@ -355,13 +363,22 @@ export class ReactiveEngine {
                 // }
             }
         }
-        this.cacheTimer && window.clearTimeout(this.cacheTimer)
-        this.cacheTimer = window.setTimeout(async () => {
+        let _window;
+        if (window) {
+            _window = window;
+        } else {
+            _window = {};
+        }
+        this.cacheTimer && _window.clearTimeout(this.cacheTimer)
+        this.cacheTimer = _window.setTimeout(async () => {
 
             Promise.resolve().then(() => {
                 if (ApplicationService.current?.Options?.onReactiveEffectRun) {
                     ApplicationService.current.Options.onReactiveEffectRun('trigger', this.cacheFx, key)
                 }
+                var i18nServices = ApplicationService.current.services.GetServices();
+                
+
                 this.cacheFx.forEach(async (v, k) => {
                     if (k.directive && !k.directive.disposed) {
                         //promises.push(this.triggerEffect(k, v))

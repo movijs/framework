@@ -17,10 +17,14 @@
 		"jsx": "preserve",
 		"outDir": "lib",
 		"lib": [
-			"esnext",
-			"dom"
+			"ESNext",
+			"DOM",
+			"DOM.Iterable"
 		],
-		"strictPropertyInitialization": false
+		"strictPropertyInitialization": false,
+		"typeRoots": [
+			"node_modules/@types"
+		],
 	},
 	"include": [
 		"global.d.ts",

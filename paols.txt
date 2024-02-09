@@ -1,0 +1,14 @@
+    // "main": "./dist/index.js",
+    // "module": "./dist/index.umd.js",
+    // "exports": {
+    //     ".": {
+    //         "import": {
+    //             "types": "./dist/movijs.d.ts",
+    //             "default": "./dist/index.esm.js"
+    //         },
+    //         "require": {
+    //             "types": "./dist/movijs.d.ts",
+    //             "default": "./dist/index.umd.js"
+    //         }
+    //     }
+    // },

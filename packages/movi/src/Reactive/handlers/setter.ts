@@ -5,7 +5,7 @@ import { Flags, arrayScope, builtInSymbols, getRaw, hasOwn, isModified, isNonTra
 export function createSetter(engine: ReactiveEngine) {
     return function (target, p, newValue, receiver) {
 
-
+       
         let oldValue = (target as any)[p]
         const isNew = Array.isArray(target) && isNumericKey(p) ? Number(p) < (target.length) : hasOwn(target, p)
 
@@ -15,6 +15,8 @@ export function createSetter(engine: ReactiveEngine) {
         }
 
         var res = Reflect.set(target, p, newValue, receiver);
+
+       
 
         if (engine.onValueChanged) {
             engine.onValueChanged(target, p);
@@ -27,14 +29,19 @@ export function createSetter(engine: ReactiveEngine) {
         } else if (Array.isArray(target) && !isNew) {
             resulme = false;
         }
+
+        
         // else if (Object.is(newValue, oldValue)) {
         //     resulme = false;
         // }
-
-        if (resulme) {
+        
+        //|| arrayScope.enabled
+         
+        if (resulme || arrayScope.enabled) {
+            
             engine.trigger(target, p, newValue);
-
-
+            removeArrayStack();  
+        
             // if (arrayScope.enabled) { 
             //     var origin = arrayScope.key; 
             //     removeArrayStack();  

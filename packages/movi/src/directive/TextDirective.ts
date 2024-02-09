@@ -3,7 +3,7 @@ import { IDirective } from "../abstractions/IDirective";
 import { CheckType, DirectiveBindingType } from "../abstractions/DirectiveBindingTypes";
 import Bindable from "../Reactive/Bindable";
 import { IFxMapper } from "../Reactive/ReactiveEngine";
-import { ApplicationService } from "..";
+import { ApplicationService, Component } from "..";
 export class TextDirectiveSettings {
     public Property!: object;
     public FieldName!: string;

@@ -2,6 +2,7 @@ import { ApplicationService } from "./ApplicationService";
 import { MoviComponent } from "./ComponentBase";
 import { ControlProps } from "./abstractions";
 import { CreateLocalElement, ElementTypes } from "./core";
+import { dom } from "./core/Dom";
 
 // export class ComponentBasic extends MoviComponent<any, any, ComponentBasic>{
 //     constructor(tag: ElementTypes | string)
@@ -199,7 +200,7 @@ export function createElement(tag: any, options: any): Component<any, any> {
 export function moviFragment(options: any): Component<any, any> {
     // console.error("[MOVIJS]: fragment is not supported. auto convert to div element.")
     // return moviComponent('div', {...options});
-    return new Component(document.createComment(''), { ...options, isMainComponent: true });
+    return new Component(dom.createComment(''), { ...options, isMainComponent: true });
     var ops = {
         settings: { isRouterView: true },
         isFragment: true,

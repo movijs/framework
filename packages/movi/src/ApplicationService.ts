@@ -17,9 +17,9 @@ const latestAppValue = new Dictionary<string | symbol | any, any>();
 export const ApplicationMiddleware = new Set<(next: () => any, e: IControl<any, any, any>) => void>();
 
 
- 
+
 export class MoviApplicationService implements IApplicationService {
-    public Options: IConfigurationOptions|any;
+    public Options: IConfigurationOptions | any;
     public services: IServiceManager = new ServiceManager();
     public extensions: Set<any> = new Set();
     public RouteManager: IRouteManager = new RouteManager();
@@ -31,7 +31,7 @@ export class MoviApplicationService implements IApplicationService {
     public starters = new Set<Function>();
     // public platform: typeof Platform = Platform;
     // public browser:typeof Browser = Browser;
-    public ModelSettings: IModelSettings = { PageSize: 25 }; 
+    public ModelSettings: IModelSettings = { PageSize: 25 };
     public state = this.useModel({});
     public GarbageCollection = {
         items: [] as IDisposable[],
@@ -132,10 +132,10 @@ export class MoviApplicationService implements IApplicationService {
             }
         }
     }
- 
+
     middleware(ref: (next: () => any, e: IControl<any, any, any>) => void) {
         ApplicationMiddleware.add(ref);
-    } 
+    }
 
     public CreateObject(type, params) {
         var c = type;
@@ -164,14 +164,26 @@ export class MoviApplicationService implements IApplicationService {
         this.RouteManager.router.trigger(uri)
     }
 
-    startup(settings:(context:IApplicationService)=> void) {
+    startup(settings: (context: IApplicationService) => void) {
         if (!this.starters.has(settings)) {
-            this.starters.add(settings);            
+            this.starters.add(settings);
         }
     }
- 
+
 }
 
 export class ApplicationService {
     public static current: IApplicationService = new MoviApplicationService();
-} 
+}
+
+
+export function changeModel(e?: () => Promise<any>) {
+    if (e) {
+        e().then(x => {
+            //ApplicationService.current.MainPage['updateState'](true) 
+            ApplicationService.current.send('updateState');
+        })
+    } else {
+        ApplicationService.current.send('updateState');
+    }
+}

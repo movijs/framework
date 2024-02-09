@@ -7,6 +7,7 @@ import Bindable from "../Reactive/Bindable";
 import { IFxMapper } from "../Reactive/ReactiveEngine";
 import { Component } from "../Component";
 import { ApplicationService, Frame } from "..";
+import { dom } from "../core/Dom";
 
 export class LogicDirectiveSettings {
     public Property!: object;
@@ -62,64 +63,7 @@ export class LogicDirective implements IDirective<LogicDirectiveSettings>{
             // } 
         }
 
-        //  var newElement = this._settings.callback(val);
-
-        // if (!newElement.isRendered) { 
-        //     this._source.controls.add(newElement);
-        // } else { 
-        //     newElement.show();
-        // }
-        // // debugger;
-        // this._source.controls.filter(x => x !== newElement).forEach(f => {
-        //     f.hide();
-        // });
-
-        // if (!this._source.controls.find(t=> t == newElement)) {
-        //     this._source.controls.add(newElement);
-        // }
-        // newElement.show();
-
-        // if (this._prevControl != null) {
-        //     if (typeof val === 'boolean') {
-        //         if (val) {
-        //             var pi = this._source.controls.indexOf(this._prevControl);
-        //             this._prevControl.dispose();
-        //             this._prevControl = this._settings.callback(val);
-        //             if (this._prevControl === undefined || this._prevControl === null) {
-        //                 this._prevControl = new Component(document.createComment(''), {});
-        //             }
-        //             this._source.controls.insert(pi, this._prevControl);
-        //         } else {
-        //             var pi = this._source.controls.indexOf(this._prevControl);
-        //             this._prevControl.dispose();
-        //             this._prevControl = new Component(document.createComment(''), {});
-        //             this._source.controls.insert(pi, this._prevControl);
-        //         }
-
-        //     } else {
-        //         var pi = this._source.controls.indexOf(this._prevControl);
-        //         this._prevControl.dispose();
-        //         this._prevControl = this._settings.callback(val);
-        //         if (this._prevControl === undefined || this._prevControl === null) {
-        //             this._prevControl = new Component(document.createComment(''), {});
-        //         }
-        //         this._source.controls.insert(pi, this._prevControl);
-        //     }
-
-        // } else {
-        //     if (typeof val === 'boolean') {
-        //         this._prevControl = new Component(document.createComment('PCHOLDER'), {});
-        //         this._source.controls.add(this._prevControl);
-        //     } else {
-
-        //         this._prevControl = this._settings.callback(val);
-
-        //         if (this._prevControl === undefined || this._prevControl === null) {
-        //             this._prevControl = new Component(document.createComment('PCHOLDER'), {});
-        //         }
-        //         this._source.controls.add(this._prevControl);
-        //     }
-        // }
+       
     }
     start() {
     }
@@ -136,30 +80,7 @@ export class LogicDirective implements IDirective<LogicDirectiveSettings>{
             val = val();
         }
 
-        // if (this.oldValue != val) {
-        //     this.oldValue = val;
-
-        //     if (val == true) {
-        //         var newElement = this._settings.callback(val);
-        //         var index = this._source.controls.indexOf(this._source);
-        //         if (Array.isArray(this._prevControl)) {
-        //             this._prevControl.forEach(pc => {
-        //                 if (pc && !pc.isDisposed) {
-        //                     pc.dispose();
-        //                 }
-        //             })
-        //         } else {
-        //             if (this._prevControl && !this._prevControl.isDisposed) {
-        //                 this._prevControl.dispose();
-        //             }
-        //         }
-        //         this._prevControl = newElement;
-        //         this._source.controls.insert(index, newElement);
-        //     } else {
-
-        //     }
-
-        // }
+       
 
 
         if (this.oldValue != val) {
@@ -170,14 +91,14 @@ export class LogicDirective implements IDirective<LogicDirectiveSettings>{
                     // this._prevControl && !this._prevControl.isDisposed && this._prevControl instanceof Component && this._prevControl.hide();
                     this._prevControl = this._settings.callback(val);
                     if (this._prevControl === undefined || this._prevControl === null) {
-                        this._prevControl = new Component(document.createComment(''), {});
+                        this._prevControl = new Component(dom.createComment(''), {});
                     }
                     this._source.navigate(this._prevControl);
                     //this._source.controls.insert(pi, this._prevControl);
                 } else {
                     // var pi = this._source.controls.indexOf(this._prevControl);
                     // this._prevControl && !this._prevControl.isDisposed && this._prevControl instanceof Component && this._prevControl?.dispose();
-                    this._prevControl = new Component(document.createComment(''), {});
+                    this._prevControl = new Component(dom.createComment(''), {});
                     this._source.navigate(this._prevControl);
                     //this._source.controls.insert(pi, this._prevControl);
                 }
@@ -187,7 +108,7 @@ export class LogicDirective implements IDirective<LogicDirectiveSettings>{
                 this._prevControl = this._settings.callback(val);
 
                 if (this._prevControl === undefined || this._prevControl === null) {
-                    this._prevControl = new Component(document.createComment(''), {});
+                    this._prevControl = new Component(dom.createComment(''), {});
                 }
                 this._source.navigate(this._prevControl);
                 //this._source.controls.insert(pi, this._prevControl);

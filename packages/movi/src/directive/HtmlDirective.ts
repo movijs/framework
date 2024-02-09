@@ -39,9 +39,10 @@ export class HtmlDirective implements IDirective<HtmlDirectiveSettings>{
             return;
         }
         this._settings.oldValue = nValue;
-
-
-
+        if (this._source.element.tagName == 'script' || this._source.element.tagName == 'SCRIPT' || this._source.element instanceof HTMLScriptElement) { 
+            return null;
+        }
+         
         if (this._settings.oldValue === undefined || this._settings.oldValue === null) {
             this._settings.oldValue = '';
         }
@@ -53,9 +54,9 @@ export class HtmlDirective implements IDirective<HtmlDirectiveSettings>{
             })
             //this._source.element.textContent = arrayToString;
             if (this._source.element instanceof HTMLElement || this._source.element instanceof Element) {
-                this._source.element.innerHTML = arrayToString;
+                this._source.element.innerHTML = arrayToString.replace(/(\<script)([\S\s\.]*)(script\>)/gi, '');
             } else {
-                this._source.element.textContent = arrayToString;
+                this._source.element.textContent = arrayToString.replace(/(\<script)([\S\s\.]*)(script\>)/gi, '');
             }
 
         } else if (typeof this._settings.oldValue === 'object') {
@@ -68,9 +69,9 @@ export class HtmlDirective implements IDirective<HtmlDirectiveSettings>{
                 })
                 //this._source.element.textContent = objectToString;
                 if (this._source.element instanceof HTMLElement || this._source.element instanceof Element) {
-                    this._source.element.innerHTML = objectToString;
+                    this._source.element.innerHTML = objectToString.replace(/(\<script)([\S\s\.]*)(script\>)/gi, '');
                 } else {
-                    this._source.element.textContent = objectToString;
+                    this._source.element.textContent = objectToString.replace(/(\<script)([\S\s\.]*)(script\>)/gi, '');
                 }
             }
         } else {
@@ -79,12 +80,11 @@ export class HtmlDirective implements IDirective<HtmlDirectiveSettings>{
             } else {
                 this.setupCompleted = true;
             }
-
             //this._source.element.textContent = this._settings.oldValue;
             if (this._source.element instanceof HTMLElement || this._source.element instanceof Element) {
-                this._source.element.innerHTML = this._settings.oldValue;
+                this._source.element.innerHTML = this._settings.oldValue.replace(/(\<script)([\S\s\.]*)(script\>)/gi, '');
             } else {
-                this._source.element.textContent = this._settings.oldValue;
+                this._source.element.textContent = this._settings.oldValue.replace(/(\<script)([\S\s\.]*)(script\>)/gi, '');
             }
         }
 

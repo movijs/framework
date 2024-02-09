@@ -1,41 +1,54 @@
 import { IControl } from "./abstractions";
 import { Component } from "./Component";
+import { dom } from "./core/Dom";
 export class Frame extends Component<any, any>{
     public current: IControl<any, any, any> | null = null;
-    isBusy: boolean = false;
-    onmounted(sender) {
-        if (sender.context.ControlCollection.has(sender.parent)) {
-            sender.context.ControlCollection.delete(sender.parent)
-        }
-        sender.context.ControlCollection.set(sender.parent, sender);
-    }
-
+    isBusy: boolean = false; 
     public async dispose() {
-        this.context.ControlCollection.delete(this.parent);
-        this.context.ControlCollection.delete(this);
+        // this.context.ControlCollection.delete(this.parent);
+        // this.context.ControlCollection.delete(this);
         if (this.current != null) {
-            await this.current.dispose();
+            if (Array.isArray(this.current)) {
+                await this.current.forEach(async xr => {
+                    if (!xr.isDisposed) {
+                        await xr.dispose();
+                    }
+                })
+            } else if (this.current && !this.current.isDisposed) {
+                await this.current.dispose();
+            }
         }
         await super.dispose();
     }
     public async flush() {
         if (this.current != null) {
-            this.current.dispose();
+
+            if (Array.isArray(this.current)) {
+                await this.current.forEach(async xr => {
+                    if (!xr.isDisposed) {
+                        await xr.dispose();
+                    }
+                })
+            } else if (this.current && !this.current.isDisposed) {
+                this.current.dispose();
+            }
         }
         super.flush();
     }
     public async clear() {
         if (this.current != null) {
-            this.current.dispose();
+            if (Array.isArray(this.current)) {
+                await this.current.forEach(async xr => {
+                    if (!xr.isDisposed) {
+                        await xr.dispose();
+                    }
+                })
+            } else {
+                this.current.dispose();
+            }
         }
         super.clear();
-    }
-    constructor() {
-        super(document.createComment('f'), { settings: { isRouterView: true } });
-        this.isFragment = true;
-        (this as any)._.isMainComponent = true;
-
-    }
+    } 
     previouspage;
     currentlist = new Set();
     public async navigate(page: IControl<any, any, any>, keepOldControl: boolean = false) {
@@ -54,22 +67,37 @@ export class Frame extends Component<any, any>{
             } else {
                 return f;
             }
-         }
+        }
 
         const complete = () => {
             var xP = expandFunction(page);
-            this.current =xP;
+            this.current = xP;
 
             try {
-                xP.build();
-                if (xP['nodes']) {
-                    xP['nodes'].forEach(async c => {
-                        c.parent = this;
-                        if (!c.isRendered) {
-                            c.build();
+                if (Array.isArray(xP)) {
+                    xP.forEach(x => {
+                        x.build();
+                        if (x['nodes']) {
+                            x['nodes'].forEach(async c => {
+                                c.parent = this;
+                                if (!c.isRendered) {
+                                    c.build();
+                                }
+                            })
                         }
                     })
+                } else {
+                    xP.build();
+                    if (xP['nodes']) {
+                        xP['nodes'].forEach(async c => {
+                            c.parent = this;
+                            if (!c.isRendered) {
+                                c.build();
+                            }
+                        })
+                    }
                 }
+
             } catch (error) {
                 console.error(error)
             }
@@ -78,13 +106,23 @@ export class Frame extends Component<any, any>{
         }
 
         if (this.current != null && !keepOldControl) {
-            if (!this.current.isDisposed) {
-                this.current.dispose(() => {
-                    complete();
-                });
-            } else {
+            if (Array.isArray(this.current)) {
+                this.current.forEach(xr => {
+                    if (!xr.isDisposed) {
+                        xr.dispose();
+                    }
+                })
                 complete();
+            } else {
+                if (!this.current.isDisposed) {
+                    this.current.dispose(() => {
+                        complete();
+                    });
+                } else {
+                    complete();
+                }
             }
+
         } else {
             complete();
         }

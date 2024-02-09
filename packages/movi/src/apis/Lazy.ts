@@ -1,4 +1,5 @@
 import { Component } from "../Component"; 
+import { Frame } from "../Frame";
 
 export function Lazy<T>(caller: () => Promise<T>): Component {
     var getDefault = (source) => {
@@ -7,9 +8,9 @@ export function Lazy<T>(caller: () => Promise<T>): Component {
         }
         return source
     } 
-    var _plc = new Component({});
+    var _plc = new Frame({});
     caller().then(x => {
-        _plc.add(getDefault(x));
+        _plc.navigate(getDefault(x));
     });
     return _plc;
 }

@@ -1,531 +1,530 @@
-export interface styleKeys  {
-    accentColor?: string;
-    alignContent?: string;
-    alignItems?: string;
-    alignSelf?: string;
-    alignmentBaseline?: string;
-    all?: string;
-    animation?: string;
-    animationDelay?: string;
-    animationDirection?: string;
-    animationDuration?: string;
-    animationFillMode?: string;
-    animationIterationCount?: string;
-    animationName?: string;
-    animationPlayState?: string;
-    animationTimingFunction?: string;
-    appearance?: string;
-    aspectRatio?: string;
-    backfaceVisibility?: string;
-    background?: string;
-    backgroundAttachment?: string;
-    backgroundBlendMode?: string;
-    backgroundClip?: string;
-    backgroundColor?: string;
-    backgroundImage?: string;
-    backgroundOrigin?: string;
-    backgroundPosition?: string;
-    backgroundPositionX?: string;
-    backgroundPositionY?: string;
-    backgroundRepeat?: string;
-    backgroundSize?: string;
-    baselineShift?: string;
-    blockSize?: string;
-    border?: string;
-    borderBlock?: string;
-    borderBlockColor?: string;
-    borderBlockEnd?: string;
-    borderBlockEndColor?: string;
-    borderBlockEndStyle?: string;
-    borderBlockEndWidth?: string;
-    borderBlockStart?: string;
-    borderBlockStartColor?: string;
-    borderBlockStartStyle?: string;
-    borderBlockStartWidth?: string;
-    borderBlockStyle?: string;
-    borderBlockWidth?: string;
-    borderBottom?: string;
-    borderBottomColor?: string;
-    borderBottomLeftRadius?: string;
-    borderBottomRightRadius?: string;
-    borderBottomStyle?: string;
-    borderBottomWidth?: string;
-    borderCollapse?: string;
-    borderColor?: string;
-    borderEndEndRadius?: string;
-    borderEndStartRadius?: string;
-    borderImage?: string;
-    borderImageOutset?: string;
-    borderImageRepeat?: string;
-    borderImageSlice?: string;
-    borderImageSource?: string;
-    borderImageWidth?: string;
-    borderInline?: string;
-    borderInlineColor?: string;
-    borderInlineEnd?: string;
-    borderInlineEndColor?: string;
-    borderInlineEndStyle?: string;
-    borderInlineEndWidth?: string;
-    borderInlineStart?: string;
-    borderInlineStartColor?: string;
-    borderInlineStartStyle?: string;
-    borderInlineStartWidth?: string;
-    borderInlineStyle?: string;
-    borderInlineWidth?: string;
-    borderLeft?: string;
-    borderLeftColor?: string;
-    borderLeftStyle?: string;
-    borderLeftWidth?: string;
-    borderRadius?: string;
-    borderRight?: string;
-    borderRightColor?: string;
-    borderRightStyle?: string;
-    borderRightWidth?: string;
-    borderSpacing?: string;
-    borderStartEndRadius?: string;
-    borderStartStartRadius?: string;
-    borderStyle?: string;
-    borderTop?: string;
-    borderTopColor?: string;
-    borderTopLeftRadius?: string;
-    borderTopRightRadius?: string;
-    borderTopStyle?: string;
-    borderTopWidth?: string;
-    borderWidth?: string;
-    bottom?: string;
-    boxShadow?: string;
-    boxSizing?: string;
-    breakAfter?: string;
-    breakBefore?: string;
-    breakInside?: string;
-    captionSide?: string;
-    caretColor?: string;
-    clear?: string;
+export interface styleKeys {
+    accentColor?:string|Function
+    alignContent?:string|Function
+    alignItems?:string|Function
+    alignSelf?:string|Function
+    alignmentBaseline?:string|Function
+    all?:string|Function
+    animation?:string|Function
+    animationDelay?:string|Function
+    animationDirection?:string|Function
+    animationDuration?:string|Function
+    animationFillMode?:string|Function
+    animationIterationCount?:string|Function
+    animationName?:string|Function
+    animationPlayState?:string|Function
+    animationTimingFunction?:string|Function
+    appearance?:string|Function
+    aspectRatio?:string|Function
+    backfaceVisibility?:string|Function
+    background?:string|Function
+    backgroundAttachment?:string|Function
+    backgroundBlendMode?:string|Function
+    backgroundClip?:string|Function
+    backgroundColor?:string|Function
+    backgroundImage?:string|Function
+    backgroundOrigin?:string|Function
+    backgroundPosition?:string|Function
+    backgroundPositionX?:string|Function
+    backgroundPositionY?:string|Function
+    backgroundRepeat?:string|Function
+    backgroundSize?:string|Function
+    baselineShift?:string|Function
+    blockSize?:string|Function
+    border?:string|Function
+    borderBlock?:string|Function
+    borderBlockColor?:string|Function
+    borderBlockEnd?:string|Function
+    borderBlockEndColor?:string|Function
+    borderBlockEndStyle?:string|Function
+    borderBlockEndWidth?:string|Function
+    borderBlockStart?:string|Function
+    borderBlockStartColor?:string|Function
+    borderBlockStartStyle?:string|Function
+    borderBlockStartWidth?:string|Function
+    borderBlockStyle?:string|Function
+    borderBlockWidth?:string|Function
+    borderBottom?:string|Function
+    borderBottomColor?:string|Function
+    borderBottomLeftRadius?:string|Function
+    borderBottomRightRadius?:string|Function
+    borderBottomStyle?:string|Function
+    borderBottomWidth?:string|Function
+    borderCollapse?:string|Function
+    borderColor?:string|Function
+    borderEndEndRadius?:string|Function
+    borderEndStartRadius?:string|Function
+    borderImage?:string|Function
+    borderImageOutset?:string|Function
+    borderImageRepeat?:string|Function
+    borderImageSlice?:string|Function
+    borderImageSource?:string|Function
+    borderImageWidth?:string|Function
+    borderInline?:string|Function
+    borderInlineColor?:string|Function
+    borderInlineEnd?:string|Function
+    borderInlineEndColor?:string|Function
+    borderInlineEndStyle?:string|Function
+    borderInlineEndWidth?:string|Function
+    borderInlineStart?:string|Function
+    borderInlineStartColor?:string|Function
+    borderInlineStartStyle?:string|Function
+    borderInlineStartWidth?:string|Function
+    borderInlineStyle?:string|Function
+    borderInlineWidth?:string|Function
+    borderLeft?:string|Function
+    borderLeftColor?:string|Function
+    borderLeftStyle?:string|Function
+    borderLeftWidth?:string|Function
+    borderRadius?:string|Function
+    borderRight?:string|Function
+    borderRightColor?:string|Function
+    borderRightStyle?:string|Function
+    borderRightWidth?:string|Function
+    borderSpacing?:string|Function
+    borderStartEndRadius?:string|Function
+    borderStartStartRadius?:string|Function
+    borderStyle?:string|Function
+    borderTop?:string|Function
+    borderTopColor?:string|Function
+    borderTopLeftRadius?:string|Function
+    borderTopRightRadius?:string|Function
+    borderTopStyle?:string|Function
+    borderTopWidth?:string|Function
+    borderWidth?:string|Function
+    bottom?:string|Function
+    boxShadow?:string|Function
+    boxSizing?:string|Function
+    breakAfter?:string|Function
+    breakBefore?:string|Function
+    breakInside?:string|Function
+    captionSide?:string|Function
+    caretColor?:string|Function
+    clear?:string|Function
     /** @deprecated */
-    clip?: string;
-    clipPath?: string;
-    clipRule?: string;
-    color?: string;
-    colorInterpolation?: string;
-    colorInterpolationFilters?: string;
-    colorScheme?: string;
-    columnCount?: string;
-    columnFill?: string;
-    columnGap?: string;
-    columnRule?: string;
-    columnRuleColor?: string;
-    columnRuleStyle?: string;
-    columnRuleWidth?: string;
-    columnSpan?: string;
-    columnWidth?: string;
-    columns?: string;
-    contain?: string;
-    content?: string;
-    counterIncrement?: string;
-    counterReset?: string;
-    counterSet?: string;
-    cssFloat?: string;
-    cssText?: string;
-    cursor?: string;
-    direction?: string;
-    display?: string;
-    dominantBaseline?: string;
-    emptyCells?: string;
-    fill?: string;
-    fillOpacity?: string;
-    fillRule?: string;
-    filter?: string;
-    flex?: string;
-    flexBasis?: string;
-    flexDirection?: string;
-    flexFlow?: string;
-    flexGrow?: string;
-    flexShrink?: string;
-    flexWrap?: string;
-    float?: string;
-    floodColor?: string;
-    floodOpacity?: string;
-    font?: string;
-    fontFamily?: string;
-    fontFeatureSettings?: string;
-    fontKerning?: string;
-    fontOpticalSizing?: string;
-    fontSize?: string;
-    fontSizeAdjust?: string;
-    fontStretch?: string;
-    fontStyle?: string;
-    fontSynthesis?: string;
-    fontVariant?: string;
-    fontVariantAlternates?: string;
-    fontVariantCaps?: string;
-    fontVariantEastAsian?: string;
-    fontVariantLigatures?: string;
-    fontVariantNumeric?: string;
-    fontVariantPosition?: string;
-    fontVariationSettings?: string;
-    fontWeight?: string;
-    gap?: string;
-    grid?: string;
-    gridArea?: string;
-    gridAutoColumns?: string;
-    gridAutoFlow?: string;
-    gridAutoRows?: string;
-    gridColumn?: string;
-    gridColumnEnd?: string;
+    clip?:string|Function
+    clipPath?:string|Function
+    clipRule?:string|Function
+    color?:string|Function
+    colorInterpolation?:string|Function
+    colorInterpolationFilters?:string|Function
+    colorScheme?:string|Function
+    columnCount?:string|Function
+    columnFill?:string|Function
+    columnGap?:string|Function
+    columnRule?:string|Function
+    columnRuleColor?:string|Function
+    columnRuleStyle?:string|Function
+    columnRuleWidth?:string|Function
+    columnSpan?:string|Function
+    columnWidth?:string|Function
+    columns?:string|Function
+    contain?:string|Function
+    content?:string|Function
+    counterIncrement?:string|Function
+    counterReset?:string|Function
+    counterSet?:string|Function
+    cssFloat?:string|Function
+    cssText?:string|Function
+    cursor?:string|Function
+    direction?:string|Function
+    display?:string|Function
+    dominantBaseline?:string|Function
+    emptyCells?:string|Function
+    fill?:string|Function
+    fillOpacity?:string|Function
+    fillRule?:string|Function
+    filter?:string|Function
+    flex?:string|Function
+    flexBasis?:string|Function
+    flexDirection?:string|Function
+    flexFlow?:string|Function
+    flexGrow?:string|Function
+    flexShrink?:string|Function
+    flexWrap?:string|Function
+    float?:string|Function
+    floodColor?:string|Function
+    floodOpacity?:string|Function
+    font?:string|Function
+    fontFamily?:string|Function
+    fontFeatureSettings?:string|Function
+    fontKerning?:string|Function
+    fontOpticalSizing?:string|Function
+    fontSize?:string|Function
+    fontSizeAdjust?:string|Function
+    fontStretch?:string|Function
+    fontStyle?:string|Function
+    fontSynthesis?:string|Function
+    fontVariant?:string|Function
+    fontVariantAlternates?:string|Function
+    fontVariantCaps?:string|Function
+    fontVariantEastAsian?:string|Function
+    fontVariantLigatures?:string|Function
+    fontVariantNumeric?:string|Function
+    fontVariantPosition?:string|Function
+    fontVariationSettings?:string|Function
+    fontWeight?:string|Function
+    gap?:string|Function
+    grid?:string|Function
+    gridArea?:string|Function
+    gridAutoColumns?:string|Function
+    gridAutoFlow?:string|Function
+    gridAutoRows?:string|Function
+    gridColumn?:string|Function
+    gridColumnEnd?:string|Function
     /** @deprecated This is a legacy alias of `columnGap`. */
-    gridColumnGap?: string;
-    gridColumnStart?: string;
+    gridColumnGap?:string|Function
+    gridColumnStart?:string|Function
     /** @deprecated This is a legacy alias of `gap`. */
-    gridGap?: string;
-    gridRow?: string;
-    gridRowEnd?: string;
+    gridGap?:string|Function
+    gridRow?:string|Function
+    gridRowEnd?:string|Function
     /** @deprecated This is a legacy alias of `rowGap`. */
-    gridRowGap?: string;
-    gridRowStart?: string;
-    gridTemplate?: string;
-    gridTemplateAreas?: string;
-    gridTemplateColumns?: string;
-    gridTemplateRows?: string;
-    height?: string;
-    hyphens?: string;
+    gridRowGap?:string|Function
+    gridRowStart?:string|Function
+    gridTemplate?:string|Function
+    gridTemplateAreas?:string|Function
+    gridTemplateColumns?:string|Function
+    gridTemplateRows?:string|Function
+    height?:string|Function
+    hyphens?:string|Function
     /** @deprecated */
-    imageOrientation?: string;
-    imageRendering?: string;
-    inlineSize?: string;
-    inset?: string;
-    insetBlock?: string;
-    insetBlockEnd?: string;
-    insetBlockStart?: string;
-    insetInline?: string;
-    insetInlineEnd?: string;
-    insetInlineStart?: string;
-    isolation?: string;
-    justifyContent?: string;
-    justifyItems?: string;
-    justifySelf?: string;
-    left?: string;
-    readonly length?: number;
-    letterSpacing?: string;
-    lightingColor?: string;
-    lineBreak?: string;
-    lineHeight?: string;
-    listStyle?: string;
-    listStyleImage?: string;
-    listStylePosition?: string;
-    listStyleType?: string;
-    margin?: string;
-    marginBlock?: string;
-    marginBlockEnd?: string;
-    marginBlockStart?: string;
-    marginBottom?: string;
-    marginInline?: string;
-    marginInlineEnd?: string;
-    marginInlineStart?: string;
-    marginLeft?: string;
-    marginRight?: string;
-    marginTop?: string;
-    marker?: string;
-    markerEnd?: string;
-    markerMid?: string;
-    markerStart?: string;
-    mask?: string;
-    maskClip?: string;
-    maskComposite?: string;
-    maskImage?: string;
-    maskMode?: string;
-    maskOrigin?: string;
-    maskPosition?: string;
-    maskRepeat?: string;
-    maskSize?: string;
-    maskType?: string;
-    maxBlockSize?: string;
-    maxHeight?: string;
-    maxInlineSize?: string;
-    maxWidth?: string;
-    minBlockSize?: string;
-    minHeight?: string;
-    minInlineSize?: string;
-    minWidth?: string;
-    mixBlendMode?: string;
-    objectFit?: string;
-    objectPosition?: string;
-    offset?: string;
-    offsetDistance?: string;
-    offsetPath?: string;
-    offsetRotate?: string;
-    opacity?: string;
-    order?: string;
-    orphans?: string;
-    outline?: string;
-    outlineColor?: string;
-    outlineOffset?: string;
-    outlineStyle?: string;
-    outlineWidth?: string;
-    overflow?: string;
-    overflowAnchor?: string;
-    overflowWrap?: string;
-    overflowX?: string;
-    overflowY?: string;
-    overscrollBehavior?: string;
-    overscrollBehaviorBlock?: string;
-    overscrollBehaviorInline?: string;
-    overscrollBehaviorX?: string;
-    overscrollBehaviorY?: string;
-    padding?: string;
-    paddingBlock?: string;
-    paddingBlockEnd?: string;
-    paddingBlockStart?: string;
-    paddingBottom?: string;
-    paddingInline?: string;
-    paddingInlineEnd?: string;
-    paddingInlineStart?: string;
-    paddingLeft?: string;
-    paddingRight?: string;
-    paddingTop?: string;
-    pageBreakAfter?: string;
-    pageBreakBefore?: string;
-    pageBreakInside?: string;
-    paintOrder?: string;
+    imageOrientation?:string|Function
+    imageRendering?:string|Function
+    inlineSize?:string|Function
+    inset?:string|Function
+    insetBlock?:string|Function
+    insetBlockEnd?:string|Function
+    insetBlockStart?:string|Function
+    insetInline?:string|Function
+    insetInlineEnd?:string|Function
+    insetInlineStart?:string|Function
+    isolation?:string|Function
+    justifyContent?:string|Function
+    justifyItems?:string|Function
+    justifySelf?:string|Function
+    left?:string|Function
+    readonly length?: number|Function;
+    letterSpacing?:string|Function
+    lightingColor?:string|Function
+    lineBreak?:string|Function
+    lineHeight?:string|Function
+    listStyle?:string|Function
+    listStyleImage?:string|Function
+    listStylePosition?:string|Function
+    listStyleType?:string|Function
+    margin?:string|Function
+    marginBlock?:string|Function
+    marginBlockEnd?:string|Function
+    marginBlockStart?:string|Function
+    marginBottom?:string|Function
+    marginInline?:string|Function
+    marginInlineEnd?:string|Function
+    marginInlineStart?:string|Function
+    marginLeft?:string|Function
+    marginRight?:string|Function
+    marginTop?:string|Function
+    marker?:string|Function
+    markerEnd?:string|Function
+    markerMid?:string|Function
+    markerStart?:string|Function
+    mask?:string|Function
+    maskClip?:string|Function
+    maskComposite?:string|Function
+    maskImage?:string|Function
+    maskMode?:string|Function
+    maskOrigin?:string|Function
+    maskPosition?:string|Function
+    maskRepeat?:string|Function
+    maskSize?:string|Function
+    maskType?:string|Function
+    maxBlockSize?:string|Function
+    maxHeight?:string|Function
+    maxInlineSize?:string|Function
+    maxWidth?:string|Function
+    minBlockSize?:string|Function
+    minHeight?:string|Function
+    minInlineSize?:string|Function
+    minWidth?:string|Function
+    mixBlendMode?:string|Function
+    objectFit?:string|Function
+    objectPosition?:string|Function
+    offset?:string|Function
+    offsetDistance?:string|Function
+    offsetPath?:string|Function
+    offsetRotate?:string|Function
+    opacity?:string|Function
+    order?:string|Function
+    orphans?:string|Function
+    outline?:string|Function
+    outlineColor?:string|Function
+    outlineOffset?:string|Function
+    outlineStyle?:string|Function
+    outlineWidth?:string|Function
+    overflow?:string|Function
+    overflowAnchor?:string|Function
+    overflowWrap?:string|Function
+    overflowX?:string|Function
+    overflowY?:string|Function
+    overscrollBehavior?:string|Function
+    overscrollBehaviorBlock?:string|Function
+    overscrollBehaviorInline?:string|Function
+    overscrollBehaviorX?:string|Function
+    overscrollBehaviorY?:string|Function
+    padding?:string|Function
+    paddingBlock?:string|Function
+    paddingBlockEnd?:string|Function
+    paddingBlockStart?:string|Function
+    paddingBottom?:string|Function
+    paddingInline?:string|Function
+    paddingInlineEnd?:string|Function
+    paddingInlineStart?:string|Function
+    paddingLeft?:string|Function
+    paddingRight?:string|Function
+    paddingTop?:string|Function
+    pageBreakAfter?:string|Function
+    pageBreakBefore?:string|Function
+    pageBreakInside?:string|Function
+    paintOrder?:string|Function
     readonly parentRule?: CSSRule | null;
-    perspective?: string;
-    perspectiveOrigin?: string;
-    placeContent?: string;
-    placeItems?: string;
-    placeSelf?: string;
-    pointerEvents?: string;
-    position?: string;
-    printColorAdjust?: string;
-    quotes?: string;
-    resize?: string;
-    right?: string;
-    rotate?: string;
-    rowGap?: string;
-    rubyPosition?: string;
-    scale?: string;
-    scrollBehavior?: string;
-    scrollMargin?: string;
-    scrollMarginBlock?: string;
-    scrollMarginBlockEnd?: string;
-    scrollMarginBlockStart?: string;
-    scrollMarginBottom?: string;
-    scrollMarginInline?: string;
-    scrollMarginInlineEnd?: string;
-    scrollMarginInlineStart?: string;
-    scrollMarginLeft?: string;
-    scrollMarginRight?: string;
-    scrollMarginTop?: string;
-    scrollPadding?: string;
-    scrollPaddingBlock?: string;
-    scrollPaddingBlockEnd?: string;
-    scrollPaddingBlockStart?: string;
-    scrollPaddingBottom?: string;
-    scrollPaddingInline?: string;
-    scrollPaddingInlineEnd?: string;
-    scrollPaddingInlineStart?: string;
-    scrollPaddingLeft?: string;
-    scrollPaddingRight?: string;
-    scrollPaddingTop?: string;
-    scrollSnapAlign?: string;
-    scrollSnapStop?: string;
-    scrollSnapType?: string;
-    scrollbarGutter?: string;
-    shapeImageThreshold?: string;
-    shapeMargin?: string;
-    shapeOutside?: string;
-    shapeRendering?: string;
-    stopColor?: string;
-    stopOpacity?: string;
-    stroke?: string;
-    strokeDasharray?: string;
-    strokeDashoffset?: string;
-    strokeLinecap?: string;
-    strokeLinejoin?: string;
-    strokeMiterlimit?: string;
-    strokeOpacity?: string;
-    strokeWidth?: string;
-    tabSize?: string;
-    tableLayout?: string;
-    textAlign?: string;
-    textAlignLast?: string;
-    textAnchor?: string;
-    textCombineUpright?: string;
-    textDecoration?: string;
-    textDecorationColor?: string;
-    textDecorationLine?: string;
-    textDecorationSkipInk?: string;
-    textDecorationStyle?: string;
-    textDecorationThickness?: string;
-    textEmphasis?: string;
-    textEmphasisColor?: string;
-    textEmphasisPosition?: string;
-    textEmphasisStyle?: string;
-    textIndent?: string;
-    textOrientation?: string;
-    textOverflow?: string;
-    textRendering?: string;
-    textShadow?: string;
-    textTransform?: string;
-    textUnderlineOffset?: string;
-    textUnderlinePosition?: string;
-    top?: string;
-    touchAction?: string;
-    transform?: string;
-    transformBox?: string;
-    transformOrigin?: string;
-    transformStyle?: string;
-    transition?: string;
-    transitionDelay?: string;
-    transitionDuration?: string;
-    transitionProperty?: string;
-    transitionTimingFunction?: string;
-    translate?: string;
-    unicodeBidi?: string;
-    userSelect?: string;
-    verticalAlign?: string;
-    visibility?: string;
+    perspective?:string|Function
+    perspectiveOrigin?:string|Function
+    placeContent?:string|Function
+    placeItems?:string|Function
+    placeSelf?:string|Function
+    pointerEvents?:string|Function
+    position?:string|Function
+    printColorAdjust?:string|Function
+    quotes?:string|Function
+    resize?:string|Function
+    right?:string|Function
+    rotate?:string|Function
+    rowGap?:string|Function
+    rubyPosition?:string|Function
+    scale?:string|Function
+    scrollBehavior?:string|Function
+    scrollMargin?:string|Function
+    scrollMarginBlock?:string|Function
+    scrollMarginBlockEnd?:string|Function
+    scrollMarginBlockStart?:string|Function
+    scrollMarginBottom?:string|Function
+    scrollMarginInline?:string|Function
+    scrollMarginInlineEnd?:string|Function
+    scrollMarginInlineStart?:string|Function
+    scrollMarginLeft?:string|Function
+    scrollMarginRight?:string|Function
+    scrollMarginTop?:string|Function
+    scrollPadding?:string|Function
+    scrollPaddingBlock?:string|Function
+    scrollPaddingBlockEnd?:string|Function
+    scrollPaddingBlockStart?:string|Function
+    scrollPaddingBottom?:string|Function
+    scrollPaddingInline?:string|Function
+    scrollPaddingInlineEnd?:string|Function
+    scrollPaddingInlineStart?:string|Function
+    scrollPaddingLeft?:string|Function
+    scrollPaddingRight?:string|Function
+    scrollPaddingTop?:string|Function
+    scrollSnapAlign?:string|Function
+    scrollSnapStop?:string|Function
+    scrollSnapType?:string|Function
+    scrollbarGutter?:string|Function
+    shapeImageThreshold?:string|Function
+    shapeMargin?:string|Function
+    shapeOutside?:string|Function
+    shapeRendering?:string|Function
+    stopColor?:string|Function
+    stopOpacity?:string|Function
+    stroke?:string|Function
+    strokeDasharray?:string|Function
+    strokeDashoffset?:string|Function
+    strokeLinecap?:string|Function
+    strokeLinejoin?:string|Function
+    strokeMiterlimit?:string|Function
+    strokeOpacity?:string|Function
+    strokeWidth?:string|Function
+    tabSize?:string|Function
+    tableLayout?:string|Function
+    textAlign?:string|Function
+    textAlignLast?:string|Function
+    textAnchor?:string|Function
+    textCombineUpright?:string|Function
+    textDecoration?:string|Function
+    textDecorationColor?:string|Function
+    textDecorationLine?:string|Function
+    textDecorationSkipInk?:string|Function
+    textDecorationStyle?:string|Function
+    textDecorationThickness?:string|Function
+    textEmphasis?:string|Function
+    textEmphasisColor?:string|Function
+    textEmphasisPosition?:string|Function
+    textEmphasisStyle?:string|Function
+    textIndent?:string|Function
+    textOrientation?:string|Function
+    textOverflow?:string|Function
+    textRendering?:string|Function
+    textShadow?:string|Function
+    textTransform?:string|Function
+    textUnderlineOffset?:string|Function
+    textUnderlinePosition?:string|Function
+    top?:string|Function
+    touchAction?:string|Function
+    transform?:string|Function
+    transformBox?:string|Function
+    transformOrigin?:string|Function
+    transformStyle?:string|Function
+    transition?:string|Function
+    transitionDelay?:string|Function
+    transitionDuration?:string|Function
+    transitionProperty?:string|Function
+    transitionTimingFunction?:string|Function
+    translate?:string|Function
+    unicodeBidi?:string|Function
+    userSelect?:string|Function
+    verticalAlign?:string|Function
+    visibility?:string|Function
     /** @deprecated This is a legacy alias of `alignContent`. */
-    webkitAlignContent?: string;
+    webkitAlignContent?:string|Function
     /** @deprecated This is a legacy alias of `alignItems`. */
-    webkitAlignItems?: string;
+    webkitAlignItems?:string|Function
     /** @deprecated This is a legacy alias of `alignSelf`. */
-    webkitAlignSelf?: string;
+    webkitAlignSelf?:string|Function
     /** @deprecated This is a legacy alias of `animation`. */
-    webkitAnimation?: string;
+    webkitAnimation?:string|Function
     /** @deprecated This is a legacy alias of `animationDelay`. */
-    webkitAnimationDelay?: string;
+    webkitAnimationDelay?:string|Function
     /** @deprecated This is a legacy alias of `animationDirection`. */
-    webkitAnimationDirection?: string;
+    webkitAnimationDirection?:string|Function
     /** @deprecated This is a legacy alias of `animationDuration`. */
-    webkitAnimationDuration?: string;
+    webkitAnimationDuration?:string|Function
     /** @deprecated This is a legacy alias of `animationFillMode`. */
-    webkitAnimationFillMode?: string;
+    webkitAnimationFillMode?:string|Function
     /** @deprecated This is a legacy alias of `animationIterationCount`. */
-    webkitAnimationIterationCount?: string;
+    webkitAnimationIterationCount?:string|Function
     /** @deprecated This is a legacy alias of `animationName`. */
-    webkitAnimationName?: string;
+    webkitAnimationName?:string|Function
     /** @deprecated This is a legacy alias of `animationPlayState`. */
-    webkitAnimationPlayState?: string;
+    webkitAnimationPlayState?:string|Function
     /** @deprecated This is a legacy alias of `animationTimingFunction`. */
-    webkitAnimationTimingFunction?: string;
+    webkitAnimationTimingFunction?:string|Function
     /** @deprecated This is a legacy alias of `appearance`. */
-    webkitAppearance?: string;
+    webkitAppearance?:string|Function
     /** @deprecated This is a legacy alias of `backfaceVisibility`. */
-    webkitBackfaceVisibility?: string;
+    webkitBackfaceVisibility?:string|Function
     /** @deprecated This is a legacy alias of `backgroundClip`. */
-    webkitBackgroundClip?: string;
+    webkitBackgroundClip?:string|Function
     /** @deprecated This is a legacy alias of `backgroundOrigin`. */
-    webkitBackgroundOrigin?: string;
+    webkitBackgroundOrigin?:string|Function
     /** @deprecated This is a legacy alias of `backgroundSize`. */
-    webkitBackgroundSize?: string;
+    webkitBackgroundSize?:string|Function
     /** @deprecated This is a legacy alias of `borderBottomLeftRadius`. */
-    webkitBorderBottomLeftRadius?: string;
+    webkitBorderBottomLeftRadius?:string|Function
     /** @deprecated This is a legacy alias of `borderBottomRightRadius`. */
-    webkitBorderBottomRightRadius?: string;
+    webkitBorderBottomRightRadius?:string|Function
     /** @deprecated This is a legacy alias of `borderRadius`. */
-    webkitBorderRadius?: string;
+    webkitBorderRadius?:string|Function
     /** @deprecated This is a legacy alias of `borderTopLeftRadius`. */
-    webkitBorderTopLeftRadius?: string;
+    webkitBorderTopLeftRadius?:string|Function
     /** @deprecated This is a legacy alias of `borderTopRightRadius`. */
-    webkitBorderTopRightRadius?: string;
+    webkitBorderTopRightRadius?:string|Function
     /** @deprecated This is a legacy alias of `boxAlign`. */
-    webkitBoxAlign?: string;
+    webkitBoxAlign?:string|Function
     /** @deprecated This is a legacy alias of `boxFlex`. */
-    webkitBoxFlex?: string;
+    webkitBoxFlex?:string|Function
     /** @deprecated This is a legacy alias of `boxOrdinalGroup`. */
-    webkitBoxOrdinalGroup?: string;
+    webkitBoxOrdinalGroup?:string|Function
     /** @deprecated This is a legacy alias of `boxOrient`. */
-    webkitBoxOrient?: string;
+    webkitBoxOrient?:string|Function
     /** @deprecated This is a legacy alias of `boxPack`. */
-    webkitBoxPack?: string;
+    webkitBoxPack?:string|Function
     /** @deprecated This is a legacy alias of `boxShadow`. */
-    webkitBoxShadow?: string;
+    webkitBoxShadow?:string|Function
     /** @deprecated This is a legacy alias of `boxSizing`. */
-    webkitBoxSizing?: string;
+    webkitBoxSizing?:string|Function
     /** @deprecated This is a legacy alias of `filter`. */
-    webkitFilter?: string;
+    webkitFilter?:string|Function
     /** @deprecated This is a legacy alias of `flex`. */
-    webkitFlex?: string;
+    webkitFlex?:string|Function
     /** @deprecated This is a legacy alias of `flexBasis`. */
-    webkitFlexBasis?: string;
+    webkitFlexBasis?:string|Function
     /** @deprecated This is a legacy alias of `flexDirection`. */
-    webkitFlexDirection?: string;
+    webkitFlexDirection?:string|Function
     /** @deprecated This is a legacy alias of `flexFlow`. */
-    webkitFlexFlow?: string;
+    webkitFlexFlow?:string|Function
     /** @deprecated This is a legacy alias of `flexGrow`. */
-    webkitFlexGrow?: string;
+    webkitFlexGrow?:string|Function
     /** @deprecated This is a legacy alias of `flexShrink`. */
-    webkitFlexShrink?: string;
+    webkitFlexShrink?:string|Function
     /** @deprecated This is a legacy alias of `flexWrap`. */
-    webkitFlexWrap?: string;
+    webkitFlexWrap?:string|Function
     /** @deprecated This is a legacy alias of `justifyContent`. */
-    webkitJustifyContent?: string;
-    webkitLineClamp?: string;
+    webkitJustifyContent?:string|Function
+    webkitLineClamp?:string|Function
     /** @deprecated This is a legacy alias of `mask`. */
-    webkitMask?: string;
+    webkitMask?:string|Function
     /** @deprecated This is a legacy alias of `maskBorder`. */
-    webkitMaskBoxImage?: string;
+    webkitMaskBoxImage?:string|Function
     /** @deprecated This is a legacy alias of `maskBorderOutset`. */
-    webkitMaskBoxImageOutset?: string;
+    webkitMaskBoxImageOutset?:string|Function
     /** @deprecated This is a legacy alias of `maskBorderRepeat`. */
-    webkitMaskBoxImageRepeat?: string;
+    webkitMaskBoxImageRepeat?:string|Function
     /** @deprecated This is a legacy alias of `maskBorderSlice`. */
-    webkitMaskBoxImageSlice?: string;
+    webkitMaskBoxImageSlice?:string|Function
     /** @deprecated This is a legacy alias of `maskBorderSource`. */
-    webkitMaskBoxImageSource?: string;
+    webkitMaskBoxImageSource?:string|Function
     /** @deprecated This is a legacy alias of `maskBorderWidth`. */
-    webkitMaskBoxImageWidth?: string;
+    webkitMaskBoxImageWidth?:string|Function
     /** @deprecated This is a legacy alias of `maskClip`. */
-    webkitMaskClip?: string;
-    webkitMaskComposite?: string;
+    webkitMaskClip?:string|Function
+    webkitMaskComposite?:string|Function
     /** @deprecated This is a legacy alias of `maskImage`. */
-    webkitMaskImage?: string;
+    webkitMaskImage?:string|Function
     /** @deprecated This is a legacy alias of `maskOrigin`. */
-    webkitMaskOrigin?: string;
+    webkitMaskOrigin?:string|Function
     /** @deprecated This is a legacy alias of `maskPosition`. */
-    webkitMaskPosition?: string;
+    webkitMaskPosition?:string|Function
     /** @deprecated This is a legacy alias of `maskRepeat`. */
-    webkitMaskRepeat?: string;
+    webkitMaskRepeat?:string|Function
     /** @deprecated This is a legacy alias of `maskSize`. */
-    webkitMaskSize?: string;
+    webkitMaskSize?:string|Function
     /** @deprecated This is a legacy alias of `order`. */
-    webkitOrder?: string;
+    webkitOrder?:string|Function
     /** @deprecated This is a legacy alias of `perspective`. */
-    webkitPerspective?: string;
+    webkitPerspective?:string|Function
     /** @deprecated This is a legacy alias of `perspectiveOrigin`. */
-    webkitPerspectiveOrigin?: string;
-    webkitTextFillColor?: string;
+    webkitPerspectiveOrigin?:string|Function
+    webkitTextFillColor?:string|Function
     /** @deprecated This is a legacy alias of `textSizeAdjust`. */
-    webkitTextSizeAdjust?: string;
-    webkitTextStroke?: string;
-    webkitTextStrokeColor?: string;
-    webkitTextStrokeWidth?: string;
+    webkitTextSizeAdjust?:string|Function
+    webkitTextStroke?:string|Function
+    webkitTextStrokeColor?:string|Function
+    webkitTextStrokeWidth?:string|Function
     /** @deprecated This is a legacy alias of `transform`. */
-    webkitTransform?: string;
+    webkitTransform?:string|Function
     /** @deprecated This is a legacy alias of `transformOrigin`. */
-    webkitTransformOrigin?: string;
+    webkitTransformOrigin?:string|Function
     /** @deprecated This is a legacy alias of `transformStyle`. */
-    webkitTransformStyle?: string;
+    webkitTransformStyle?:string|Function
     /** @deprecated This is a legacy alias of `transition`. */
-    webkitTransition?: string;
+    webkitTransition?:string|Function
     /** @deprecated This is a legacy alias of `transitionDelay`. */
-    webkitTransitionDelay?: string;
+    webkitTransitionDelay?:string|Function
     /** @deprecated This is a legacy alias of `transitionDuration`. */
-    webkitTransitionDuration?: string;
+    webkitTransitionDuration?:string|Function
     /** @deprecated This is a legacy alias of `transitionProperty`. */
-    webkitTransitionProperty?: string;
+    webkitTransitionProperty?:string|Function
     /** @deprecated This is a legacy alias of `transitionTimingFunction`. */
-    webkitTransitionTimingFunction?: string;
+    webkitTransitionTimingFunction?:string|Function
     /** @deprecated This is a legacy alias of `userSelect`. */
-    webkitUserSelect?: string;
-    whiteSpace?: string;
-    widows?: string;
-    width?: string;
-    willChange?: string;
-    wordBreak?: string;
-    wordSpacing?: string;
+    webkitUserSelect?:string|Function
+    whiteSpace?:string|Function
+    widows?:string|Function
+    width?:string|Function
+    willChange?:string|Function
+    wordBreak?:string|Function
+    wordSpacing?:string|Function
     /** @deprecated */
-    wordWrap?: string;
-    writingMode?: string;
-    zIndex?: string;
-       
+    wordWrap?:string|Function
+    writingMode?:string|Function
+    zIndex?:string|Function
 }

@@ -1,3 +1,4 @@
+ 
 export class Collection<T extends Object> extends Array {
     public ItemAdded?: (i: T) => void;
     public ItemAddedBefore?: (i: T) => void;
@@ -33,7 +34,9 @@ export class Collection<T extends Object> extends Array {
         var i = this.splice(start, 0, item);
         if (this.ItemSplice != undefined) { this.ItemSplice(start, item); };
         return i;
-    }
+    } 
+ 
+
     public remove(item: T) {
         this._map.delete(item);
         var index = this.indexOf(item);

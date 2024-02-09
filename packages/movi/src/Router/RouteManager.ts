@@ -4,6 +4,7 @@ import { IRouteManager, RouteItem, RouteRecord } from "../abstractions/IRouteMan
 import { IRouter } from "../abstractions/Router";
 import { ApplicationMiddleware, ApplicationService } from "../ApplicationService";
 import { Component } from "../Component";
+import { dom } from "../core/Dom";
 import { RouterView } from "../RouterView";
 import { Router } from "./Router";
 import Scanner from "./scanner";
@@ -584,6 +585,12 @@ export class RouteManager implements IRouteManager {
 
     private GetRouteDetails(RequestUri: string): any {
 
+        if (window.location.protocol == 'file:') {
+            if (RequestUri.endsWith(".html")) {
+                RequestUri = "/";
+            }
+        }
+
         var urlSearchParams = new URLSearchParams(window.location.search);
         if (this.router.mode != "history" && RequestUri.split('?').length > 1) {
             urlSearchParams = new URLSearchParams(RequestUri.split("?")[1]);
@@ -645,6 +652,11 @@ export class RouteManager implements IRouteManager {
 
     private GetRouteDetailsFromString(RequestUri: string): any {
 
+        if (window.location.protocol == 'file:') {
+            if (RequestUri.endsWith(".html")) {
+                RequestUri = "/";
+            }
+        }
         var urlSearchParams = new URLSearchParams(RequestUri);
         if (RequestUri.split('?').length > 1) {
             urlSearchParams = new URLSearchParams(RequestUri.split("?")[1]);
@@ -694,7 +706,7 @@ export class RouteManager implements IRouteManager {
 
                     rdd = {
                         extend: extender,
-                        params: { ...this.params, ...urlParams } ,
+                        params: { ...this.params, ...urlParams },
                         name: r.name,
                         onShow: r.onShow,
                         tree: pp
@@ -708,7 +720,7 @@ export class RouteManager implements IRouteManager {
         return rdd;
     }
     private filterHtml(val: any) {
-        var el = document.createElement("div");
+        var el = dom.createElement("div");
         el.innerHTML = val;
         return el.innerText;
     }

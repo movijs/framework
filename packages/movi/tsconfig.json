@@ -17,9 +17,14 @@
 		"declaration": true,
 		"jsx": "preserve",
 		"outDir": "./dist",
+		"useDefineForClassFields":true,
+		"exactOptionalPropertyTypes": false,
+		"useUnknownInCatchVariables": false,
+		"forceConsistentCasingInFileNames": true,
 		"lib": [
-			"esnext",
-			"dom"
+			"ESNext",
+			"DOM",
+			"DOM.Iterable"
 		],
 		"types": [
 		 
