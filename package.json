@@ -42,6 +42,6 @@
     ],
     "types": "./dist/movijs.d.ts",
     "dependencies": {
-        "movijs": "^1.0.7"
+        "movijs": "^1.2.94"
     }
 }
