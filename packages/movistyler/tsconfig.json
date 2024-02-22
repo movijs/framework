@@ -1,0 +1,39 @@
+{
+	"compilerOptions": {
+		"sourceMap": true,
+		"target": "ES6",
+		"module": "ESNext",
+		"moduleResolution": "Node",
+		"allowJs": true,
+		"strict": true,
+		"noUnusedLocals": false,
+		"experimentalDecorators": true,
+		"resolveJsonModule": true,
+		"esModuleInterop": true,
+		"removeComments": false,
+		"noImplicitAny": false,
+		"noImplicitReturns": false,
+		"noImplicitOverride": false,
+		"declaration": true,
+		"jsx": "preserve",
+		"outDir": "./dist",
+		"useDefineForClassFields":true,
+		"exactOptionalPropertyTypes": false,
+		"useUnknownInCatchVariables": false,
+		"forceConsistentCasingInFileNames": true,
+		"lib": [
+			"ESNext",
+			"DOM",
+			"DOM.Iterable"
+		],
+		"types": [
+		 
+		],
+	},
+	"include": [
+		"src/global.d.ts",
+		"./src/**/*", 
+		"global.d.ts",
+		"global.d.ts"
+	]
+}

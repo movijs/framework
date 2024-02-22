@@ -1,0 +1,55 @@
+{
+  "private": false,
+  "name": "movijsx",
+  "version": "1.1.45",
+  "description": "vite plugin for movi JSX",
+  "author": "Ekrem Ershahin <ekremersahin@outlook.com>",
+  "homepage": "https://movijs.com/",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.cjs",
+  "exports": {
+    ".": {
+      "import": "./dist/index.cjs",
+      "require": "./dist/index.umd.js"
+    }
+  },
+  "scripts": {
+    "build": "rollup -c",
+    "publish": "npm publish" 
+  },
+  "files": [
+    "dist/*.js",
+    "dist/*.js.map",
+    "dist/*.d.ts",
+    "dist/*.d.ts",
+    "package.json",
+    "dist"
+  ],
+  "types": "./dist/index.d.ts",
+  "dependencies": {
+    "@babel/core": "^7.20.2",
+    "@babel/helper-module-imports": "^7.18.6",
+    "@babel/plugin-syntax-jsx": "^7.18.6",
+    "@babel/preset-env": "^7.20.2",
+    "@babel/preset-flow": "^7.22.5",
+    "@babel/preset-typescript": "^7.23.3",
+    "@babel/template": "^7.18.10",
+    "@babel/traverse": "^7.20.1",
+    "@babel/types": "^7.20.2",
+    "@types/babel__core": "^7.1.20",
+    "@types/svg-tags": "^1.0.0",
+    "@typescript-eslint/eslint-plugin": "^5.42.1",
+    "@typescript-eslint/parser": "^5.42.1",
+    "camelcase": "^7.0.0",
+    "html-tags": "^3.2.0",
+    "regenerator-runtime": "^0.13.10",
+    "svg-tags": "^1.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "20.11.19",
+    "preview": "^0.1.3",
+    "vite": "^5.1.3"
+  }
+}

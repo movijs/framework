@@ -1,34 +1,28 @@
 {
-	"compilerOptions": {
-		"sourceMap": true,
-		"target": "ES6",
-		"module": "ES2015",
-		"moduleResolution": "Node",
-		"allowJs": true,
-		"strict": true,
-		"noUnusedLocals": false,
-		"experimentalDecorators": true,
-		"resolveJsonModule": true,
-		"esModuleInterop": true,
-		"removeComments": false,
-		"noImplicitAny": false,
-		"allowUnusedLabels": true,
-		"declaration": true,
-		"jsx": "preserve",
-		"outDir": "lib",
-		"lib": [
-			"ESNext",
-			"DOM",
-			"DOM.Iterable"
-		],
-		"strictPropertyInitialization": false,
-		"typeRoots": [
-			"node_modules/@types"
-		],
-	},
-	"include": [
-		"global.d.ts",
-		"packages/movi/src",
-		"packages/movi/global.d.ts"
-	]
+  "compilerOptions": {
+    "sourceMap": true,
+    "target": "ES6",
+    "module": "ES2015",
+    "moduleResolution": "Node",
+    "allowJs": false,
+    "strict": true,
+    "noUnusedLocals": false,
+    "experimentalDecorators": true,
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "removeComments": false,
+    "noImplicitAny": false,
+    "strictNullChecks": false,
+    "allowUnusedLabels": true,  
+    "jsx": "preserve", 
+    "lib": [
+      "ESNext",
+      "DOM",
+      "DOM.Iterable"
+    ], 
+    "typeRoots": [
+      "node_modules/@types",
+      "vite/client"
+    ] 
+  }
 }

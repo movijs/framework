@@ -1,0 +1,16 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "declaration": true,
+    "allowImportingTsExtensions": true,
+    "emitDeclarationOnly": true,
+    "allowJs": true,
+    "target": "ES6",
+    "module": "ESNext",
+    "jsx": "preserve"
+  },
+  "include": [
+    "src"
+  ]
+}

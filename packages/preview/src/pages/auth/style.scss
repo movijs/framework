@@ -1,0 +1,20 @@
+body {
+    background-image: url(https://img.freepik.com/free-vector/white-abstract-background-design_23-2148825582.jpg?w=1800&t=st=1707204524~exp=1707205124~hmac=bd4013865e2f9a64da6c7cd6255a2a985738ce016d6e96e4f101d5b3dfc31492);
+    background-size: cover;
+
+}
+
+.lightbox-cover { 
+    position: relative;
+    max-width: 440px; 
+    padding: 44px;
+    margin-bottom: 28px;
+    background-color: #fff;
+    -webkit-box-shadow: 0 2px 6px rgba(0,0,0,.2);
+    -moz-box-shadow: 0 2px 6px rgba(0,0,0,.2);
+    box-shadow: 0 2px 6px rgba(0,0,0,.2);
+    min-width: 320px;
+    min-height: 338px;
+    overflow: hidden;
+    width: 100vw;
+}

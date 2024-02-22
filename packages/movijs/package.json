@@ -1,0 +1,36 @@
+{
+  "name": "movijs",
+  "version": "1.3.3",
+  "description": "",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.umd.js",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/movijs.d.ts",
+        "default": "./dist/index.esm.js"
+      },
+      "require": {
+        "types": "./dist/movijs.d.ts",
+        "default": "./dist/index.umd.js"
+      }
+    }
+  },
+  "scripts": {
+    "build": "rollup -c",
+    "buildw": "rollup -c -w",
+    "publish": "npm publish"  
+  },
+  "author": "Ekrem Erşahin",
+  "license": "MIT",
+  "devDependencies": {
+    "preview": "^0.1.3",
+    "vite": "^5.1.3"
+  },
+  "files": [
+    "dist",
+    "**/package.json"
+  ],
+  "types": "./dist/movijs.d.ts"
+}

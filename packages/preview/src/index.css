@@ -1,0 +1,70 @@
+body,
+html {
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  max-height: 100%;
+  overflow: hidden;
+}
+
+#header {
+  max-height: 60px;
+  height: 100%;
+  box-sizing: border-box;
+  background-color: #1e1e1e;
+  border-bottom: 1px solid #333;
+  padding: 0;
+  color: #fff;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0px 16px;
+}
+
+h1 {
+  font-size: 18px;
+  display: inline-block;
+  margin: 0px;
+}
+
+
+
+#header a {
+  font-weight: 600;
+  color: rgb(101, 163, 221);
+}
+
+#header .label {
+  font-weight: bold;
+}
+
+
+#header label {
+  color: #999;
+}
+
+.editor_flex-layout {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+}
+
+.split_editor {
+  display: flex;
+  flex-direction: row;
+  height: 100%;
+  width: 100%;
+}
+
+.editor {
+  width: 50%;
+  bottom: 0;
+  box-sizing: border-box;
+}
+
+
+.highlight {
+  background-color: rgba(46, 120, 190, 0.5);
+}
