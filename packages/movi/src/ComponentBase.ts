@@ -71,7 +71,7 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
         initializing: {
             wait: () => {
                 if (!this._.waitInit) {
-                    if (this._.waitState === false && this.bind.Configuration.WaitSettings && this.bind.waitDirective) {
+                    if (this._.waitState === false && this.bind.Configuration.WaitSettings && this.bind.waitDirective && this.parent) {
                         this.parent["_"].methods.AppendElement(this);
                         this.hide();
                         this._.waitState = true;
@@ -390,10 +390,11 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
                                     var newref = array[len];
                                     this.element.insertBefore(child.element, newref);
                                 } else {
-                                    if (ref && ref.isVisible) {
-
+                                    if (ref && ref.isVisible) { 
                                         if (ref.element.isConnected) {
-                                            this.element.insertBefore(child.element, ref.element);
+                                            if (child.element != ref.element) { 
+                                                this.element.insertBefore(child.element, ref.element);
+                                            } 
                                         } else if (ref._.placeholder.isConnected) {
                                             this.element.insertBefore(child.element, ref._.placeholder);
                                         } else {
@@ -733,6 +734,7 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
     protected constructor(tag, props, args) {
 
 
+
         if (props && props.oncreating) {
             this.on('oncreating', props.oncreating); delete props.oncreating;
         }
@@ -784,8 +786,7 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
         // })
 
         if (props) {
-            predefinedsettings.forEach(x => {
-
+            predefinedsettings.forEach(x => { 
                 if (props[x]) { this.on(x, props[x]); delete props[x]; }
 
             })
@@ -945,6 +946,10 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
         this._.event.oncreated();
 
         this.signal('updateState', this.updateState.bind(this));
+
+        //Object.getPrototypeOf(this.element).component=this;
+        // (this.element as any).component = ()=> this;
+
     }
 
     private _iswait: boolean = false;
@@ -1464,12 +1469,12 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
         this._.methods.waitTransition('enter', () => { });
 
         if (this.onupdated) this.onupdated(this as any, { data: this.model, field: '', source: 'show' })
-        if (this.onshow && this.sendedShow == false && this.isRendered) { this.sendedShow = true; this.onshow(this as any); }
+        if (this.onshow && this.sendedShow == false && this.isRendered) { this.isVisible = true; this.sendedShow = true; this.onshow(this as any); }
     }
     private sendedShow = false;
-    async hide() {
+    async hide() { 
         if (this.isDisposed == true) { return; }
-        this.sendedShow = false; 
+        this.sendedShow = false;
         if (this.isRendered && !this.isVisible) { return };
         this.isVisible = false;
         // if (this._.isMainComponent) {
@@ -1481,7 +1486,20 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
         this._.methods.addLeaveTransition();
         await this._.methods.waitTransition('leave', () => {
             if (!this.parent || !this.parent.element) {
-                dom.body.replaceChild(this._.placeholder, this.element);
+                // if (this.isRendered) {
+                //     dom.body.replaceChild(this._.placeholder, this.element)
+                // } else { 
+                //     var ph = this._.placeholder;
+                //     this._.placeholder = this.element as any;
+                //     this.element = ph as any;
+                // }
+                dom.body.replaceChild(this._.placeholder, this.element)
+                // if (this.element.isConnected) {
+                  
+                // } else {
+                //     dom.body.append(this.element);
+                //     dom.body.replaceChild(this._.placeholder, this.element)
+                // }
             } else if (this.element.parentNode != undefined) {
                 //this.element.parentNode.insertBefore(this._.placeholder, this.element);
                 //this.element.parentNode.removeChild(this.element);

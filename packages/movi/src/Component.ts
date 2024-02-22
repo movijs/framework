@@ -80,17 +80,23 @@ systems.add('context');
 systems.add('slots');
 
 
+export type UnwrapNestedProps<T> = T extends BaseProp<T> ? T : T extends ControlProps<Component<ElementTypes, T>, T> ? T : BaseProp<T>
+
 export class Component<ElementType extends ElementTypes = HTMLElement, StateType = any> extends MoviComponent<ElementType, StateType, Component<ElementType, StateType>> {
 
 
-    constructor(options: BaseProp<StateType> | ControlProps<Component<ElementType, StateType>, StateType> | StateType);
+
+
+    constructor(options: UnwrapNestedProps<StateType>);
     constructor(tag: ElementType | string);
-    constructor(tag: ElementType | string, options: BaseProp<StateType> | ControlProps<Component<ElementType, StateType>, StateType> | StateType);
+    constructor(tag: ElementType | string, options: UnwrapNestedProps<StateType> | StateType);
     constructor() {
 
         var tag;
         var props;
         var args: ControlProps<Component<ElementType, StateType>, StateType> | BaseProp<StateType> | undefined = undefined;
+
+
         if (tag !== undefined && typeof tag === 'function') {
             var caller = (tag as any)(props);
             super(caller.element, caller, args)
@@ -129,6 +135,7 @@ export class Component<ElementType extends ElementTypes = HTMLElement, StateType
 
                 }
             }
+
             if ((tag === undefined || tag === null) && (props === undefined || props === null)) {
                 super(tag as any, props as any, args)
             } else if (tag === undefined && props !== undefined) {
@@ -147,7 +154,9 @@ export class Component<ElementType extends ElementTypes = HTMLElement, StateType
     view?(): MoviComponent<ElementType, StateType, Component<ElementType, StateType>>;
     elementCreating?(current: any): any;
 
+   
 }
+
 
 export function AsyncContainer(importer, props) {
     var result = new Component({});
@@ -176,7 +185,7 @@ export function moviComponent(tag?: any, options?: any): Component<any, any> {
         //     return resolveElement(tag, { ...options });
         // } else
 
-        if (tag instanceof HTMLUnknownElement) { 
+        if (tag instanceof HTMLUnknownElement) {
             return resolveElement('div', options);
         } else if (typeof tag === 'function') {
             return new Component({ view: () => tag, ...options });
@@ -185,7 +194,6 @@ export function moviComponent(tag?: any, options?: any): Component<any, any> {
         }
 
     } else {
-
         return resolveElement(tag, options);
     }
 }
@@ -197,6 +205,7 @@ export function createElement(tag: any, options: any): Component<any, any> {
         return resolveElement(tag, options);
     }
 }
+
 export function moviFragment(options: any): Component<any, any> {
     // console.error("[MOVIJS]: fragment is not supported. auto convert to div element.")
     // return moviComponent('div', {...options});
@@ -268,25 +277,50 @@ function resolveElement(tag, props): Component<any, any> {
             } else if (typeof getFn === 'number' || typeof getFn === 'bigint') {
                 controller = new Component('text', { setup: (s) => { s.setText(getFn) } });
             } else {
-                var ntag;
-                try {
-                    if (tag && Object.getPrototypeOf(tag) && Object.getPrototypeOf(tag).constructor) {
-                        ntag = new tag({ ...props });
+                if (/React.createElement|React.ReactNode|React.Component/g.test(tag.toString())) {
+                    if (ApplicationService.current?.Options?.onExternalCompiler) {
+                        controller = ApplicationService.current.Options.onExternalCompiler(tag, 'react', props);
                     } else {
+                        controller = tag;
+                    }
+                } if (/'from 'vue'/g.test(tag.toString())) {
+                    if (ApplicationService.current?.Options?.onExternalCompiler) {
+                        controller = ApplicationService.current.Options.onExternalCompiler(tag, 'vue', props);
+                    } else {
+                        controller = tag;
+                    }
+                } else {
+                    var ntag;
+                    try {
+                        if (tag && Object.getPrototypeOf(tag) && Object.getPrototypeOf(tag).constructor) {
+                            ntag = new tag({ ...props });
+                        } else {
+                            ntag = tag(props);
+                        }
+                    } catch (error) {
                         ntag = tag(props);
                     }
-                } catch (error) {
-                    ntag = tag(props);
+                    if (Object.keys(ntag).includes("$$typeof")) { //&& ntag.$$typeof == Symbol('react.element')
+                        if (ApplicationService.current?.Options?.onExternalCompiler) {
+                            controller = ApplicationService.current.Options.onExternalCompiler(tag, 'react', props);
+                        } else {
+                            controller = tag(tag.props);
+                        }
+                    } else {
+                        if (ntag instanceof Promise) {
+                            controller = AsyncContainer(ntag, props);
+                        } else if (ntag instanceof Component) {
+                            return ntag;
+                            //controller = new Component({ view: () => ntag, ...props })
+                        } else {
+                            controller = new Component({ view: () => ntag, ...props })
+                        }
+                    }
                 }
 
-                if (ntag instanceof Promise) {
-                    controller = AsyncContainer(ntag, props);
-                } else if (ntag instanceof Component) {
-                    return ntag;
-                    //controller = new Component({ view: () => ntag, ...props })
-                } else {
-                    controller = new Component({ view: () => ntag, ...props })
-                }
+
+
+
 
             }
 
@@ -295,8 +329,17 @@ function resolveElement(tag, props): Component<any, any> {
         }
     } else {
 
-        controller = new Component({ ...tag, ...Ctx, ...props });
+        if (Object.keys(tag).includes("$$typeof")) {
+            if (ApplicationService.current?.Options?.onExternalCompiler) {
+                //controller = new Component('div', { ...tag, ...Ctx, ...props });
+                controller = ApplicationService.current.Options.onExternalCompiler(tag, 'react', props);
+            } else {
+                controller = tag;
+            }
 
+        } else {
+            controller = new Component({ ...tag, ...Ctx, ...props });
+        }
     }
 
     return controller;

@@ -200,14 +200,20 @@ export class LoopDirective implements IDirective<LoopDirectiveSettings>{
                                 Source.parent && Source.parent.onChildAdded && Source.parent.onChildAdded(Source.parent, elm, index + current);
                             }
                         } else {
-                            var key;
-                            if (exit['__list_key__'] != undefined && exit['__list_key__'] != null) {
-                                key = this.findkey(item, exit['__list_key__']);
-                            } else {
-                                key = index;
-                            }
-
-                            if (key != exit['index'] && Source.controls.indexOf(exit) != index) {
+                            var indexChanged = false;
+                            var _settings = exit?.options?.settings;
+                            if (_settings) {
+                                var ni = typeof _settings['ni'] == 'function' ? _settings['ni']() : _settings['ni'];
+                                var oi = _settings['oi'];
+                                if ((ni != undefined && oi != undefined) && ni != oi && Source.controls.indexOf(exit) != index + current) {
+                                    indexChanged = true;
+                                } else if (ni == undefined || oi == undefined) {
+                                    if (Source.controls.indexOf(exit) != index + current) {
+                                        indexChanged = true;
+                                    }
+                                }
+                            } else { indexChanged = true; }
+                            if (indexChanged) {
                                 await exit.dispose();
                                 var elm = this.build(item, index + current);
                                 if (elm) {
@@ -217,10 +223,6 @@ export class LoopDirective implements IDirective<LoopDirectiveSettings>{
                                     Source.parent && Source.parent.onChildAdded && Source.parent.onChildAdded(Source.parent, elm, index + current);
                                 }
                                 exit = elm;
-                            } else {
-                                // console.error(exit['index']);
-                                // var elm = this._settings && this._settings.render ? this._settings.render(item, index) : null;
-                                // exit = elm;
                             }
                         }
                     }
@@ -246,7 +248,7 @@ export class LoopDirective implements IDirective<LoopDirectiveSettings>{
                         return;
                     }
                     // var elm = this._settings && this._settings.render ? this._settings.render(data, index) : null;
-                    var exit = this._source.controls.find(x => { return getRaw(x.__key__) === getRaw(item) }); 
+                    var exit = this._source.controls.find(x => { return getRaw(x.__key__) === getRaw(item) });
                     if (!exit) {
                         var elm = this.build(item, index);
                         if (elm) {
@@ -270,6 +272,12 @@ export class LoopDirective implements IDirective<LoopDirectiveSettings>{
                             }
                         } else { indexChanged = true; }
                         if (indexChanged) {
+
+                            // exit.insertTo = index;
+                            // Source.controls.insert(index, exit);
+                            //exit.build();
+
+
                             await exit.dispose();
                             var elm = this.build(item, index);
                             if (elm) {

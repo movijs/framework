@@ -1,4 +1,4 @@
-import { IConfigurationOptions, IModelSettings } from "..";
+import { Component, IConfigurationOptions, IModelSettings } from "..";
 import { routeType } from "../core/NavigateEventArgs";
 import { IControl } from "./IControl";
 import { IRouteManager } from "./IRouteManager";
@@ -52,7 +52,7 @@ export interface IDisposable {
     dispose(cb?: Function);
 }
 
-export interface IModule { 
+export interface IModule {
     name: string,
     install: () => {},
     run: () => {}
@@ -76,8 +76,8 @@ export interface IApplicationService {
     extensions: Set<any>;
     use(module: any): void;
     internal: SysInternalNotification;
-    send(eventName: string, ...args);
-    on(eventName: string | symbol, cb: (...args) => any);
+    send(eventName: string | Symbol | symbol, ...args);
+    on(eventName: string | Symbol | symbol, cb: (...args) => any);
     handle(eventName: string | symbol, cb: (...args) => any);
     useModel(data): any;
     clearModel(data): any;
@@ -91,5 +91,6 @@ export interface IApplicationService {
         add(item: IDisposable);
         except();
     }
-    startup(settings:(context:IApplicationService)=> void)
+    startup(settings: (context: IApplicationService) => void);
+    addToMain(...controls:Component<any,any>[]);
 }

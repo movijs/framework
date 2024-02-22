@@ -1,6 +1,6 @@
 {
     "name": "movijs",
-    "version": "1.2.106",
+    "version": "1.2.110",
     "description": "",
     "type": "module",
     "main": "./dist/index.js",

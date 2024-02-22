@@ -9,5 +9,6 @@ export interface IConfigurationOptions {
      middleware(ref: (next: () => any, e: IControl<any, any, any>) => void);
      ModelSettings: IModelSettings;
      onObjectRender?: (data: Object, component: IControl<any, any, any>) => void;
-     onReactiveEffectRun?: (type:string,...args) => void;
+     onReactiveEffectRun?: (type: string, ...args) => void;
+     onExternalCompiler?: (tag:any,ctx:any,props:any) => any;
 }

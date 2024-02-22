@@ -57,6 +57,11 @@ export class MoviApplicationService implements IApplicationService {
     constructor() {
         //this.Directives.add(CustomDirective);
     }
+    addToMain(...controls: Component<any, any>[]) {
+        controls.forEach(c => {
+            this.MainPage.controls.add(c)
+        });
+    }
     on(eventName: string | symbol | any, cb: (...args: any[]) => any, ...args) {
 
         Promise.resolve().then(() => {
@@ -174,6 +179,9 @@ export class MoviApplicationService implements IApplicationService {
 
 export class ApplicationService {
     public static current: IApplicationService = new MoviApplicationService();
+    public static addToMain(...components:Component<any,any>[]) { 
+        this.current && this.current.addToMain(...components);
+    }
 }
 
 
