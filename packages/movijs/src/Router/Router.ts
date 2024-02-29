@@ -4,6 +4,7 @@ import { ApplicationService } from "../ApplicationService";
 import { NavigateEventArgs } from "../core/NavigateEventArgs";
 import { RouterView } from "../RouterView";
 import { reactive } from "../Reactive";
+import { dom } from "../core/Dom";
 
 export class Router implements IRouter {
 
@@ -105,6 +106,8 @@ export class Router implements IRouter {
                 ApplicationService.current.internal.notify('routeChanged')
 
             }
+            var resume = true;
+
             if (this.gate) {
                 ea.prev = this.previousRoute;
                 this.gate(async () => { await goto() }, ea);
@@ -119,26 +122,26 @@ export class Router implements IRouter {
         x: 0, y: 0
     }
     public navigate(url: string, bypas: boolean = false) {
-        this.scrollState.x = window.scrollX;
-        this.scrollState.y = window.scrollY;
-        if (window.location.protocol != 'file:') {
+        this.scrollState.x = dom.window.scrollX;
+        this.scrollState.y = dom.window.scrollY;
+        if (dom.window.location.protocol != 'file:') {
             if (this.mode === "history") {
-                if (window.history != null) {
+                if (dom.window.history != null) {
                     if (!url.startsWith("/")) {
                         url = "/" + url;
                     }
                     this.prev = url;
-                    if (!bypas) { window.history.pushState({}, '', url); };
+                    if (!bypas) { dom.window.history.pushState({}, '', url); };
                     if (this.navigated) this.navigated.call(this)
                 }
             } else {
                 if (this.prev !== url) {
                     this.prev = url;
-                    if (!bypas) { window.location.hash = url };
+                    if (!bypas) { dom.window.location.hash = url };
                     if (this.navigated) this.navigated.call(this)
                 }
             }
-        } 
+        }
     }
     public HandlePopChange() {
         this.trigger(this.CurrentPage, true);
@@ -153,28 +156,33 @@ export class Router implements IRouter {
     public get CurrentPage(): string { return this.getFragment(); };
 
     addUriListener() {
-        if (this.mode === "history") {
-            window.addEventListener('popstate', this.HandlePopChange.bind(this));
-        } else {
-            window.addEventListener('hashchange', this.HandleHashChange.bind(this))
+        if (dom.window && dom.window.addEventListener) {
+            if (this.mode === "history") {
+                dom.window.addEventListener('popstate', this.HandlePopChange.bind(this));
+            } else {
+                dom.window.addEventListener('hashchange', this.HandleHashChange.bind(this))
+            }
         }
+
         return this;
     }
     removeUriListener() {
-        window.onpopstate = null;
-        window.onhashchange = null;
+        if (dom.window) {
+            dom.window.onpopstate = null;
+            dom.window.onhashchange = null;
+        } 
         return this;
     }
 
     _getHistoryFragment() {
-        var fragment = decodeURI(window.location.pathname + window.location.search);
+        var fragment = decodeURI(dom.window.location.pathname + dom.window.location.search);
         if (this.root !== "/") {
             fragment = fragment.replace(this.root, "");
         }
         return this._trimSlashes(fragment);
     }
     _getHashFragment() {
-        var hash = window.location.hash.substring(1).replace(/(\?.*)$/, "");
+        var hash = dom.window.location.hash.substring(1).replace(/(\?.*)$/, "");
         if (!hash.startsWith("/")) {
             hash = "/" + hash;
         }

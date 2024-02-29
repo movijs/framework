@@ -59,3 +59,5 @@ export * from "./keyCodes";
 export * from "./uri";
 export * as platform from "./platform";
 export * as proccess from "./proceses";
+export * from "./uri";
+export * from "./Dom";

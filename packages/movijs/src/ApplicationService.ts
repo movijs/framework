@@ -1,6 +1,6 @@
 import { ClearModel as clsModel } from "./Reactive";
-import { IConfigurationOptions, IControl, IModelSettings, IServiceManager } from "./abstractions";
-import { IApplicationService, IDisposable, SysInternalNotification } from "./abstractions/IApplicationService";
+import {  IControl,  IServiceManager } from "./abstractions";
+import { IConfigurationOptions,IApplicationService, IDisposable, SysInternalNotification,IModelSettings } from "./abstractions/IApplicationService";
 import { IRouteManager } from "./abstractions/IRouteManager";
 import { Component } from "./Component";
 import { Dictionary, platform, routeType } from "./core";
@@ -24,7 +24,7 @@ export class MoviApplicationService implements IApplicationService {
     public extensions: Set<any> = new Set();
     public RouteManager: IRouteManager = new RouteManager();
     public MainPage!: IControl<any, any, any>;
-    public NotFoundPage!: IControl<any, any, any>;
+    public NotFoundPage!: () => IControl<any, any, any>;
     public Loading!: IControl<any, any, any>;
     public ControlCollection: WeakMap<any, any> = new WeakMap();
     public Directives = new Set<any>();

@@ -20,7 +20,7 @@ export default class Compiler {
             babelrc: false,
             cloneInputAst: false,
             code: true,
-            sourceMaps: 'both',
+            sourceMaps: 'inline',
             comments: true,
             highlightCode: false,
             minified: false,

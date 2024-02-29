@@ -10,7 +10,7 @@
   "scripts": {
     "dev": "lerna run dev",
     "build": "lerna run  build",
-    "publish": "lerna run  publish"
+    "publishall": "lerna run  publishall"
   },
   "author": "Ekrem Erşahin <ekremersahin@outlook.com>",
   "license": "MIT",
@@ -27,5 +27,8 @@
   },
   "resolutions": {
     "typescript": "^5.3.3"
-  } 
+  },
+  "dependencies": {
+    "jsdom": "^24.0.0"
+  }
 }

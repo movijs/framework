@@ -1,5 +1,5 @@
 
-import { ApplicationService, LinkedList, MicrotaskDelay, StopWatch } from "..";
+import { ApplicationService, LinkedList, MicrotaskDelay, StopWatch, dom } from "..";
 import { IDirective } from "../abstractions/IDirective";
 import { system } from "../environment";
 import { TargetType, UnwrapNestedRefs, UnwrapValueRefs, enableTracking, followTracking, getRaw, getTargetType, isObject, pauseTracking, resetTracking } from "./common";
@@ -153,7 +153,7 @@ export class ReactiveEngine {
         if (!isObject(model)) {
             return model
         }
-        const targetType = getTargetType(model)
+        const targetType = getTargetType(model);
         if (targetType === TargetType.SYSTEM || targetType === TargetType.COLLECTION || TargetType.INVALID) {
             return model as any
         }
@@ -363,21 +363,16 @@ export class ReactiveEngine {
                 // }
             }
         }
-        let _window;
-        if (window) {
-            _window = window;
-        } else {
-            _window = {};
-        }
-        this.cacheTimer && _window.clearTimeout(this.cacheTimer)
-        this.cacheTimer = _window.setTimeout(async () => {
+   
+        this.cacheTimer && dom.window.clearTimeout(this.cacheTimer)
+        this.cacheTimer = dom.window.setTimeout(async () => {
 
             Promise.resolve().then(() => {
                 if (ApplicationService.current?.Options?.onReactiveEffectRun) {
                     ApplicationService.current.Options.onReactiveEffectRun('trigger', this.cacheFx, key)
                 }
                 var i18nServices = ApplicationService.current.services.GetServices();
-                
+
 
                 this.cacheFx.forEach(async (v, k) => {
                     if (k.directive && !k.directive.disposed) {

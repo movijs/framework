@@ -1,5 +1,6 @@
 import { KeyValueItem, toKebab } from ".";
 import { IAttribute, IClass, IControl } from "../abstractions";
+import { NodeTypes } from "../abstractions/NodeTypesEnum";
 
 export class controlClass<ElementType extends Element | HTMLElement | Text | DocumentFragment | Comment> implements IClass<IControl<ElementType, any, any>> {
     private _parent: IControl<ElementType, any, any>;
@@ -10,9 +11,12 @@ export class controlClass<ElementType extends Element | HTMLElement | Text | Doc
     oldMapper = new Set<string>();
     functionMapper = new Map<Function, string>();
     add(values: string | any[] | {} | Function): IControl<ElementType, any, any> {
-
-        this.oldMapper.clear();
-        this.parse(values, '');
+        if (this._parent.element.nodeType == 1) {
+            this.oldMapper.clear();
+            this.parse(values, '');
+        } else {
+            this._parent['_'].initializing.addPropsClass({ class: values });
+        }
         return this._parent;
     }
     remove(classNames: string | string[]): IControl<ElementType, any, any> {
@@ -20,19 +24,17 @@ export class controlClass<ElementType extends Element | HTMLElement | Text | Doc
         if (Array.isArray(classNames)) {
             classNames.forEach(cn => {
                 cn.trim().split(" ").forEach(cls => {
-                    if (this._parent.element instanceof HTMLElement ||
-                        this._parent.element instanceof Element && cls.toString().trim().length > 0) {
-                        this._parent.element.classList.remove(cls.trim())
+                    if (this._parent.element.nodeType == NodeTypes.ELEMENT_NODE && cls.toString().trim().length > 0) {
+                        (this._parent.element as any).classList.remove(cls.trim())
                     }
                 })
             })
         } else {
             if (classNames == '**') {
-                if (this._parent.element instanceof HTMLElement ||
-                    this._parent.element instanceof Element) {
-                    for (let index = this._parent.element.classList.length; index > -1; index--) {
+                if (this._parent.element.nodeType == NodeTypes.ELEMENT_NODE) {
+                    for (let index = (this._parent.element as any).classList.length; index > -1; index--) {
                         try {
-                            this._parent.element.classList.item(index) && this._parent.element.classList.remove();
+                            (this._parent.element as any).classList.item(index) && (this._parent.element as any).classList.remove();
                         } catch (error) {
 
                         }
@@ -40,9 +42,8 @@ export class controlClass<ElementType extends Element | HTMLElement | Text | Doc
                 }
             } else {
                 classNames.trim().split(" ").forEach(cls => {
-                    if (this._parent.element instanceof HTMLElement ||
-                        this._parent.element instanceof Element && cls.toString().trim().length > 0) {
-                        this._parent.element.classList.remove(cls.trim())
+                    if (this._parent.element.nodeType == NodeTypes.ELEMENT_NODE && cls.toString().trim().length > 0) {
+                        (this._parent.element as any).classList.remove(cls.trim())
                     }
                 })
             }
@@ -50,9 +51,8 @@ export class controlClass<ElementType extends Element | HTMLElement | Text | Doc
         return this._parent;
     }
     has(className: string): boolean {
-        if (this._parent.element instanceof HTMLElement ||
-            this._parent.element instanceof Element && className.toString().trim().length > 0) {
-            return this._parent.element.classList.contains(className.trim())
+        if (this._parent.element.nodeType == NodeTypes.ELEMENT_NODE && className.toString().trim().length > 0) {
+            return (this._parent.element as any).classList.contains(className.trim())
         }
         return false;
     }
@@ -69,8 +69,10 @@ export class controlClass<ElementType extends Element | HTMLElement | Text | Doc
                 if (this.functionMapper.has(values)) {
                     var removeOld = this.functionMapper.get(values);
                     if (typeof removeOld == 'string' && removeOld.trim().length > 0) {
-                        if ((this._parent.element instanceof HTMLElement || this._parent.element instanceof Element)) {
-                            this._parent.element.classList.remove(removeOld)
+                        if ((this._parent.element.nodeType == NodeTypes.ELEMENT_NODE)) {
+                            removeOld.split(" ").forEach(t => {
+                                (this._parent.element as any).classList.remove(t)
+                            }) 
                         }
                     }
                     this.functionMapper.delete(values);
@@ -91,22 +93,21 @@ export class controlClass<ElementType extends Element | HTMLElement | Text | Doc
             })
         } else if (typeof values == 'boolean') {
             if (key) {
-                if ((this._parent.element instanceof HTMLElement || this._parent.element instanceof Element)) {
+                if ((this._parent.element.nodeType == NodeTypes.ELEMENT_NODE)) {
                     if (values == true) {
-                        this._parent.element.classList.add(key);
+                        (this._parent.element as any).classList.add(key);
                         if (!this.oldMapper.has(key)) {
                             this.oldMapper.add(key);
                         }
                     } else {
-                        this._parent.element.classList.remove(key)
+                        (this._parent.element as any).classList.remove(key)
                     }
                 }
             }
         } else {
             values && values.trim().split(" ").forEach(cls => {
-                var className = cls.trim();
-                if ((this._parent.element instanceof HTMLElement || this._parent.element instanceof Element) && cls.trim() !== '' && cls.trim().length > 0) {
-                    this._parent.element.classList.add(cls.trim())
+                if ((this._parent.element.nodeType == NodeTypes.ELEMENT_NODE) && cls.trim() !== '' && cls.trim().length > 0) {
+                    (this._parent.element as any).classList.add(cls.trim());
                     if (!this.oldMapper.has(cls.trim())) {
                         this.oldMapper.add(cls.trim());
                     }

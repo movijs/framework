@@ -1,6 +1,12 @@
 import { IControl } from "./IControl";
 import { IRouter } from "./Router";
 
+export interface routerValidateEventArgs{
+    uri:string,
+    key:any,
+    routes:Map<any,RouteRecord>,
+    params:any
+}
 export class RouteRecord{
     control: IControl<any,any,any> | Promise<IControl<any,any,any>> | undefined;
     layout:  IControl<any,any,any> | Promise<IControl<any,any,any>> | undefined;
@@ -17,6 +23,7 @@ export class RouteRecord{
     onShow?: (e: IControl<any,any,any>) => void;
     public name: string | undefined;
     public default?: any;
+    validate?:(e:routerValidateEventArgs)=>boolean;
 }
 
 export interface IChildRoute { 
@@ -29,7 +36,8 @@ export class RouteItem {
     public extend?: any = {};
     public keepAlive: boolean = true;
     onShow?: (e: IControl<any,any,any>) => void; 
-    public name:string | undefined
+    public name:string | undefined;
+    validate?:(e:routerValidateEventArgs)=>boolean;
 }
 
 export interface IRouteManager {

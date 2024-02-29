@@ -65,7 +65,7 @@ export class RouterLink extends Component<HTMLElement, RouterLinkOptions> {
             }
         }
 
-        if (this.element instanceof HTMLAnchorElement) {
+        if (this.element.tagName == "A") {
             this.attr.add({ 'href': v });
         } else {
             if (this['showHref'] && this['showHref'] === true) {
@@ -91,7 +91,7 @@ export class RouterLink extends Component<HTMLElement, RouterLinkOptions> {
             if (this.props.to) {
                 if (typeof this.props.to === 'object') {
                     var to_ = this.props.to['to'] as any;
-                    if (this.element instanceof HTMLAnchorElement) {
+                    if (this.element.tagName == "A") {
                         this.attr.add({ href: this.props.to['to'] })
                     } else {
                         this.attr.add({ to: this.props.to['to'] })
@@ -99,7 +99,7 @@ export class RouterLink extends Component<HTMLElement, RouterLinkOptions> {
 
 
                 } else {
-                    if (this.element instanceof HTMLAnchorElement) {
+                    if (this.element.tagName == "A") {
                         this.attr.add({ href: this.props.to })
                     } else {
                         this.attr.add({ to: this.props.to })

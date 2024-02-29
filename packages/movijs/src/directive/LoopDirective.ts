@@ -4,7 +4,7 @@ import { CheckType, DirectiveBindingType } from "../abstractions/DirectiveBindin
 import Bindable from "../Reactive/Bindable";
 import { getRaw, pauseTracking, resetTracking } from "../Reactive/common";
 import { IFxMapper } from "../Reactive/ReactiveEngine";
-import { ApplicationService, Component, Lazy, ReactiveEngine, deepClone } from "..";
+import { ApplicationService, Component, Lazy, ReactiveEngine, deepClone, dom } from "..";
 
 
 export class LoopDirectiveSettings {
@@ -79,7 +79,7 @@ export class LoopDirective implements IDirective<LoopDirectiveSettings>{
                     }
                 });
                 if (current < items.length) {
-                    window.requestIdleCallback(() => {
+                    dom.window.requestIdleCallback(() => {
                         Promise.resolve().then(t => {
                             paged(current + this.pageCount)
                         })
@@ -228,7 +228,7 @@ export class LoopDirective implements IDirective<LoopDirectiveSettings>{
                     }
                 })
                 if (current < items.length) {
-                    window.requestIdleCallback(() => {
+                    dom.window.requestIdleCallback(() => {
                         Promise.resolve().then(t => {
                             paged(current + this.pageCount)
                         })

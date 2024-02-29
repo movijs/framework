@@ -234,7 +234,7 @@ const getProps = (props: NodePath<t.JSXAttribute | t.JSXSpreadAttribute>[], path
                         var cex = t.arrowFunctionExpression([], t.blockStatement([t.returnStatement(value)]))
                         objectExpression.push(t.objectProperty(id(clearedName), cex));
                     } else {
-                        objectProps.push(value);
+                       /// objectProps.push(value);
                     }
                 } else if (isDirective(name.toLowerCase())) {
                     if (value != null) {
@@ -259,20 +259,20 @@ const getProps = (props: NodePath<t.JSXAttribute | t.JSXSpreadAttribute>[], path
                         } else if (clearedName === "ref") {
 
                             if (t.isIdentifier(value)) {
-                                var cx = t.expressionStatement(t.assignmentExpression("=", value, t.identifier('sender')));
-
-                                var cex = t.arrowFunctionExpression([t.identifier('sender')], t.blockStatement([cx]))
+                                var cx = t.expressionStatement(t.assignmentExpression("=", value, t.identifier('sender'))); 
+                                var callRefRender = t.expressionStatement(t.callExpression(t.identifier('if(this.onRefCreated) this.onRefCreated'), [t.identifier('sender')]));
+                                var cex = t.arrowFunctionExpression([t.identifier('sender')], t.blockStatement([cx, callRefRender]))
                                 objectExpression.push(t.objectProperty(id(clearedName), cex))
                             } else if (t.isMemberExpression(value)) {
                                 var cx = t.expressionStatement(t.assignmentExpression("=", value, t.identifier('sender')));
-                                var cex = t.arrowFunctionExpression([t.identifier('sender')], t.blockStatement([cx]))
+                                var callRefRender = t.expressionStatement(t.callExpression(t.identifier('if(this.onRefCreated) this.onRefCreated'), [t.identifier('sender')]));
+                                var cex = t.arrowFunctionExpression([t.identifier('sender')], t.blockStatement([cx, callRefRender]))
                                 objectExpression.push(t.objectProperty(id(clearedName), cex))
-                            } else if (t.isFunctionExpression(value) || t.isArrowFunctionExpression(value)) {
+                            } else if (t.isFunctionExpression(value) || t.isArrowFunctionExpression(value)) { 
                                 var cex = t.arrowFunctionExpression(value.params, value.body)
                                 objectExpression.push(t.objectProperty(id(clearedName), cex))
 
-                            } else if (t.isExpression(value)) {
-
+                            } else if (t.isExpression(value)) { 
                                 var cx = t.expressionStatement(value);
                                 var cex = t.arrowFunctionExpression([t.identifier('sender')], t.blockStatement([cx]))
                                 objectExpression.push(t.objectProperty(id(clearedName), cex))
@@ -325,16 +325,18 @@ const getProps = (props: NodePath<t.JSXAttribute | t.JSXSpreadAttribute>[], path
                             }
                         }
                     }
-                } else if ((htmlAttributes.has(name) || startAttr(name)) ||
-                    (
-                        t.isJSXElement(path.node) &&
-                        (<t.JSXIdentifier>(<t.JSXElement>path.node).openingElement.name).name == String((<t.JSXIdentifier>(<t.JSXElement>path.node).openingElement.name).name).toLowerCase() &&
-                        name.toLowerCase().startsWith("on") == false &&
-                        name.toLowerCase() != 'indexkey' &&
-                        name.toLowerCase() != 'key' &&
-                        name.toLowerCase() != 'props' &&
-                        name.toLowerCase() != 'settings'
-                    )
+                } else if ((htmlAttributes.has(name) || startAttr(name))
+                    // ||
+                    // (
+                    //     t.isJSXElement(path.node) &&
+                    //     (<t.JSXIdentifier>(<t.JSXElement>path.node).openingElement.name).name == String((<t.JSXIdentifier>(<t.JSXElement>path.node).openingElement.name).name).toLowerCase() &&
+                    //     name.toLowerCase().startsWith("on") == false &&
+                    //     name.toLowerCase() != 'indexkey' &&
+                    //     name.toLowerCase() != 'key' &&
+                    //     name.toLowerCase() != 'props' &&
+                    //     name.toLowerCase() != 'settings' &&
+                    //     htmlAttributes.has(name)
+                    // )
                 ) {
 
                     var isComponent = false;
@@ -764,7 +766,7 @@ export function ParseComponent(path: NodePath<t.JSXElement>, state: State): t.Ca
         if (componentEvents.length > 0) {
             takedown.properties.push(...componentEvents)
         }
-        var exp = t.objectProperty(id('intervention'), takedown);
+        var exp = t.objectProperty(id('runover'), takedown);
         bodyExpression.properties.push(exp);
         bodyExpression.properties.push(tts);
     }

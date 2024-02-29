@@ -15,15 +15,15 @@ export function getTransitionInfo(
         dom.body.appendChild(fxElement);
         fxElement.setAttribute('class', name);
         isnew = true;
-        styles = window.getComputedStyle(fxElement);
-    } else if (el.isConnected && el.nodeType !=8) { 
-        styles = window.getComputedStyle(el);
+        styles = dom.window.getComputedStyle(fxElement);
+    } else if (el.isConnected && el.nodeType != 8) {
+        styles = dom.window.getComputedStyle(el);
     } else {
         fxElement.setAttribute('style', 'width:0!important;height:0!important;display:none');
         dom.body.appendChild(fxElement);
         fxElement.setAttribute('class', name);
         isnew = true;
-        styles = window.getComputedStyle(fxElement);
+        styles = dom.window.getComputedStyle(fxElement);
     }
 
     if (styles) {
@@ -97,8 +97,8 @@ export function getTransitionInfoFromElement(
 ): CSSTransitionInfo {
     var oldC;
     var isnew = false;
-    var styles; 
-    styles = window.getComputedStyle(el); 
+    var styles;
+    styles = dom.window.getComputedStyle(el);
     if (styles) {
         const getStyleProperties = (key: string) => (styles[key] || '').split(', ')
 

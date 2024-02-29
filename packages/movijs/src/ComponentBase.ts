@@ -11,14 +11,19 @@ import { getTransitionInfo } from "./core/transition";
 import { Directive } from "./directive";
 import { Component, ReactiveEngine, RouterView, Slot, baseemits, baseeventargs } from ".";
 import { dom } from "./core/Dom";
+import { NodeTypes } from "./abstractions/NodeTypesEnum";
 
 
 
 export const ElementModelMap = new WeakMap<any, IControl<ElementTypes, any, any>>();
 var counter = 0;
-const PlaceholderElement: Comment = dom.createComment('ph');
-const DefaultFragmentElement: DocumentFragment = dom.createDocumentFragment();
 
+const getDefaults = () => {
+    return {
+        DefaultFragmentElement: dom.createDocumentFragment(),
+        PlaceholderElement: dom.createComment('ph')
+    }
+}
 
 export class StateTypeBase<T = Object>{
     context = ApplicationService.current;
@@ -57,6 +62,7 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
         headers: null as any,
         settings: {} as any,
         autostyle: new controlStyle(this as any),
+        ssrElementId: -1,
         transition: {
             name: ''
         },
@@ -120,6 +126,135 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
                     }
                 }
                 return false;
+            },
+            addPropsClass: (props) => {
+                if (this && props && props['class'] && !this.isDisposed) {
+                    if (this.element.nodeType == 1) {
+                        this.class.add(props.class);
+                    } else {
+                        this.controls.forEach(x => { x._.initializing.addPropsClass(props) })
+                    }
+                }
+            },
+            removePropsClass: (props) => {
+                if (this && props && props['class'] && !this.isDisposed) {
+                    if (this.element.nodeType == 1) {
+                        this.class.remove(props.class);
+                    } else {
+                        this.controls.forEach(x => { x._.initializing.removePropsClass(props) })
+                    }
+                }
+            },
+            addHandler: (event: string, callback: (e: Event | UIEvent | any, sender: IControl<ElementType, any, any>) => any) => {
+                if (this.isDisposed == true) { return this }
+                if (this.element === null || this.element === undefined) {
+                    return this as any
+                }
+                if (this.element.nodeType != 1) {
+                    this.controls.forEach(x => { x._.initializing.addHandler(event, callback) })
+                } else {
+                    var xname = event.trim();
+                    var sender = this;
+                    xname.split(" ").forEach(eventName => {
+
+                        var spliter = ".";
+                        if (eventName.indexOf("-") > -1) {
+                            spliter = "-";
+                        } else if (eventName.indexOf(":") > -1) {
+                            spliter = ":";
+                        }
+                        var splt = eventName.split(spliter);
+                        const event = {
+                            key: splt[0],
+                            options: {
+                                once: false,
+                                capture: false,
+                                passive: false,
+                                prevent: false,
+                                stop: false,
+                                trusted: false,
+                                self: false,
+                            },
+
+                            value: (ev: Event | any) => {
+
+                                var recall = () => {
+                                    if (event.options.trusted === true && !ev.isTrusted) {
+                                        return;
+                                    }
+                                    if (event.options.self) {
+                                        if ((ev as Event).target !== sender.element) {
+                                            return;
+                                        }
+                                    }
+
+                                    if (splt.length > 1 && ev instanceof KeyboardEvent) {
+                                        if (ev['key']?.toLowerCase() == splt[1].toLowerCase()) {
+                                            if (event.options.prevent === true) {
+                                                ev.preventDefault();
+                                            }
+                                            if (event.options.stop === true) {
+                                                ev.stopPropagation();
+                                            }
+                                            callback(ev, sender as any)
+                                        }
+                                    }
+                                    else {
+                                        if (event.options.prevent === true) {
+                                            ev.preventDefault();
+                                        }
+                                        if (event.options.stop === true) {
+                                            ev.stopPropagation();
+                                        }
+                                        callback(ev, sender as any)
+                                    }
+                                }
+                                Promise.resolve().then(() => {
+                                    if (!queueMicrotask) {
+                                        queueMicrotask(recall);
+                                    } else {
+                                        recall();
+                                    }
+                                })
+
+                            }
+                        };
+
+                        for (let index = 2; index <= splt.length; index++) {
+                            const element = splt[index];
+                            switch (element) {
+                                case 'once':
+                                    event.options.once = true;
+                                    break;
+                                case 'passive':
+                                    event.options.passive = true;
+                                    break;
+                                case 'prevent':
+                                    event.options.prevent = true;
+                                    break;
+                                case 'stop':
+                                    event.options.stop = true;
+                                    break;
+                                case 'trusted':
+                                    event.options.trusted = true;
+                                    break;
+                                default:
+                                    break;
+                            }
+                        }
+
+                        this._.eventHandlers.add(event);
+                        try {
+                            this.element.addEventListener(event.key, event.value, event.options)
+                        } catch (err) {
+                            console.error(err);
+                        }
+
+                    });
+                }
+
+
+                return this as any;
             }
         },
         event: {
@@ -129,13 +264,15 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
                 // if (this._.isInited === false && this['onbuilding']) { this['onbuilding'](this as any); }
 
                 this._emitCollection?.get("onbuilding")?.forEach(cb => {
+                    debugger
                     cb(this);
                 })
-                if (!this._.isInited) {
-                    if (this['intervention'] && this['intervention']['onbuilding']) {
-                        this['intervention']['onbuilding'](this)
-                    }
+                // if (!this._.isInited) {
+                if (this['runover'] && this['runover']['onbuilding']) {
+
+                    this['runover']['onbuilding'](this)
                 }
+                //}
 
             },
             onbuilded: () => {
@@ -146,11 +283,11 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
                 this._emitCollection?.get("onbuilded")?.forEach(cb => {
                     cb(this);
                 })
-                if (!this._.isInited) {
-                    if (this['intervention'] && this['intervention']['onbuilded']) {
-                        this['intervention']['onbuilded'](this)
-                    }
+                //if (!this._.isInited) {
+                if (this['runover'] && this['runover']['onbuilded']) {
+                    this['runover']['onbuilded'](this)
                 }
+                // }
 
             },
             oncreating: () => {
@@ -159,12 +296,11 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
                     cb(this);
                 })
 
-                if (this['intervention'] && this['intervention']['oncreating']) {
+                if (this['runover'] && this['runover']['oncreating']) {
                     try {
-                        this['intervention']['oncreating'](this, this)
+                        this['runover']['oncreating'](this, this)
                     } catch (error) {
                     }
-
                 }
 
             },
@@ -173,8 +309,8 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
                 this._emitCollection?.get("oncreated")?.forEach(cb => {
                     cb(this);
                 })
-                if (this['intervention'] && this['intervention']['oncreated']) {
-                    this['intervention']['oncreated'](this);
+                if (this['runover'] && this['runover']['oncreated']) {
+                    this['runover']['oncreated'](this);
                 }
             },
             preconfig: () => {
@@ -183,8 +319,8 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
                 this._emitCollection?.get("preconfig")?.forEach(cb => {
                     cb(this);
                 })
-                if (this['intervention'] && this['intervention']['preconfig']) {
-                    this['intervention']['preconfig'](this);
+                if (this['runover'] && this['runover']['preconfig']) {
+                    this['runover']['preconfig'](this);
                 }
             },
             onconfig: () => {
@@ -197,9 +333,9 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
                         cb(self);
                     }
                 })
-                if (this['intervention'] && this['intervention']['onconfig']) {
-                    if (self.onconfig != self['intervention']['onconfig']) {
-                        self['intervention']['onconfig'](self);
+                if (this['runover'] && this['runover']['onconfig']) {
+                    if (self.onconfig != self['runover']['onconfig']) {
+                        self['runover']['onconfig'](self);
                     }
                 }
             }
@@ -277,35 +413,37 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
                 return founds;
             },
             runSetup: async () => {
+                var self = this;
+                if (self.setup) {
 
-                if (this.setup) {
-                    await this.setup(this as any);
+                    await self.setup(self as any);
                 }
-
-
                 await this._emitCollection?.get("setup")?.forEach(async cb => {
-                    await cb(this);
+
+                    await cb(self);
                 })
 
                 await this._emitCollection?.get("onsetup")?.forEach(async cb => {
-                    await cb(this);
-                })
 
-                if (this['intervention'] && this['intervention']['setup']) {
+                    await cb(self);
+                })
+                if (this['runover']) {
                     if (this._.isMainComponent) {
                         if (this.controls.length > 0) {
                             await this.controls.forEach(async c => {
-                                if (!c['intervention']) {
-                                    c['intervention'] = {
-                                        setup: this['intervention']['setup']
+                                if (!c['runover'] && this['runover']['setup']) {
+                                    c['runover'] = {
+                                        setup: this['runover']['setup']
                                     }
-                                } else {
-                                    c['intervention']['setup'] = this['intervention']['setup'];
+                                } else if (this['runover'] && this['runover']['setup']) {
+                                    c['runover']['setup'] = this['runover']['setup'];
                                 }
                             })
                         }
                     } else {
-                        await this['intervention']['setup'](this);
+                        if (this['runover'] && this['runover']['setup']) {
+                            this['runover']['setup'](self);
+                        }
                     }
                 }
                 this.isDisposed != true && this.context.extensions && this.context.extensions.forEach((x, y, z) => {
@@ -317,13 +455,17 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
                 });
 
             },
-            waiterFr: DefaultFragmentElement.cloneNode(),
-            waiterin: null as any,
+            //waiterFr: getDefaults().DefaultFragmentElement.cloneNode(),
+            //waiterin: null as any,
             AppendElement: async (child, reference: any = null) => {
                 if (this.isDisposed == true) { return; }
                 child._.methods.addEnterTransition();
+                if (!this || !this.element || !this.element.childNodes) {
+                    debugger;
+                    return;
+                }
                 const array = Array.prototype.slice.call(this.element.childNodes);
-                if (this._.isMainComponent || this.element instanceof Text || this.element instanceof Comment) {
+                if (this._.isMainComponent || this.element.nodeType == NodeTypes.TEXT_NODE || this.element.nodeType == NodeTypes.COMMENT_NODE) {
                     //Mevcut komponent bir fragment içeriyor. Bir üst kontrole yönlendir. ve ana düğümü bulana kadar devam et.
                     //console.error("Ana düğüm bir fragment. üst birimde arama yapılacak") 
                     if (this.parent) {
@@ -334,7 +476,7 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
                 } else {
 
                     // Bu kontroller bir html düğümüdür.  
-                    if (child._.isMainComponent || child.element instanceof Text || child.element instanceof Comment) {
+                    if (child._.isMainComponent || child.element.nodeType == NodeTypes.TEXT_NODE || child.element.nodeType == NodeTypes.COMMENT_NODE) {
 
                         //Öğe önceden eklenmiş mi?
                         if (array.indexOf(child.element) > -1) {
@@ -347,7 +489,7 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
                                 if (child.parent) {
                                     var ito = child['insertTo'];
                                     var ref = child.parent.controls.filter(ff => ff.isRendered)[ito];
-                                    if (ref && (ref.element instanceof Text || ref.element instanceof Comment)) {
+                                    if (ref && (ref.element.nodeType == NodeTypes.TEXT_NODE || ref.element.nodeType == NodeTypes.COMMENT_NODE)) {
                                         var len = array.indexOf(ref.element) - ref.controls.length;
                                         var newref = array[len];
                                         this.element.insertBefore(child.element, newref);
@@ -378,13 +520,13 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
                             } else {
                                 var ito = child['insertTo'];
                                 var ref = this.controls.filter(ff => ff.isRendered)[ito];
-                                if (ref && (ref.element instanceof Text || ref.element instanceof Comment)) {
+                                if (ref && (ref.element.nodeType == NodeTypes.TEXT_NODE || ref.element.nodeType == NodeTypes.COMMENT_NODE)) {
                                     var len = array.indexOf(ref.element) - ref.controls.length;
                                     var newref = array[len];
                                     this.element.insertBefore(child.element, newref);
                                 } else {
 
-                                    if (this.element instanceof Comment || this.element instanceof Text) {
+                                    if (this.element.nodeType == NodeTypes.COMMENT_NODE || this.element.nodeType == NodeTypes.TEXT_NODE) {
                                         if (this.parent) {
                                             (this.parent as any)._.methods.AppendElement(child);
                                         } else {
@@ -416,18 +558,12 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
                             // console.error("Öğe önceden eklenmiş")
                             var ito = child['insertTo'];
                             var ref = this.controls.filter(ff => ff.isRendered)[ito];
-                            if (ref && (ref.element instanceof Text || ref.element instanceof Comment)) {
+                            if (ref && (ref.element.nodeType == NodeTypes.TEXT_NODE || ref.element.nodeType == NodeTypes.COMMENT_NODE)) {
                                 var len = array.indexOf(ref.element) - ref.controls.length;
                                 var newref = array[len];
                                 this.element.insertBefore(child.element, newref);
                             } else {
-                                if (this.element instanceof Comment) {
-                                    if (this.parent) {
-                                        (this.parent as any)._.methods.AppendElement(child);
-                                    } else {
-                                        this.element.parentElement?.insertBefore(child.element, this.element);
-                                    }
-                                } else if (this.element instanceof Text) {
+                                if (this.element.nodeType != NodeTypes.ELEMENT_NODE) {
                                     if (this.parent) {
                                         (this.parent as any)._.methods.AppendElement(child);
                                     } else {
@@ -441,7 +577,12 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
                                     }
 
                                 } else {
-                                    this.element.appendChild(child.element);
+                                    try {
+                                        this.element.appendChild(child.element);
+                                    } catch (error) {
+                                        debugger
+                                    }
+
                                 }
                             }
                         } else {
@@ -450,7 +591,7 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
 
                                 var ito = child['insertTo'];
                                 var ref = child.parent.controls.filter(ff => ff.isRendered)[ito];
-                                if (ref && (ref.element instanceof Text || ref.element instanceof Comment)) {
+                                if (ref && (ref.element.nodeType == NodeTypes.TEXT_NODE || ref.element.nodeType == NodeTypes.COMMENT_NODE)) {
                                     var len = array.indexOf(ref.element) - ref.controls.length;
                                     var newref = array[len];
                                     this.element.insertBefore(child.element, newref);
@@ -482,19 +623,12 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
                             } else {
                                 var ito = child['insertTo'];
                                 var ref = this.controls.filter(ff => ff.isRendered)[ito];
-                                if (ref && (ref.element instanceof Text || ref.element instanceof Comment)) {
+                                if (ref && (ref.element.nodeType == NodeTypes.TEXT_NODE || ref.element.nodeType == NodeTypes.COMMENT_NODE)) {
                                     var len = array.indexOf(ref.element) - ref.controls.length;
                                     var newref = array[len];
                                     this.element.insertBefore(child.element, newref);
                                 } else {
-                                    if (this.element instanceof Comment) {
-                                        if (this.parent) {
-                                            (this.parent as any)._.methods.AppendElement(child);
-                                        } else {
-                                            this.element.parentElement?.insertBefore(child.element, this.element);
-                                        }
-
-                                    } else if (this.element instanceof Text) {
+                                    if (this.element.nodeType != NodeTypes.ELEMENT_NODE) {
                                         if (this.parent) {
                                             (this.parent as any)._.methods.AppendElement(child);
                                         } else {
@@ -504,10 +638,15 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
                                         try {
                                             ref.element.parentElement?.insertBefore(child.element, ref.element);
                                         } catch (error) {
+
+                                        }
+                                    } else {
+                                        try {
+                                            this.element.appendChild(child.element);
+                                        } catch (error) {
+                                            debugger
                                         }
 
-                                    } else {
-                                        this.element.appendChild(child.element);
                                     }
                                 }
                             }
@@ -520,6 +659,7 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
             addEnterTransition: async () => {
                 if (this.isDisposed == true) { return; }
                 var self = this;
+                if (this.element.nodeType != 1) { return; }
                 if (self?.options?.transition?.name && self.options.transition.name !== '') {
                     var name = self.options.transition.name;
                     self.class.remove([`${name}-leave`, `${name}-leave-end`])
@@ -534,6 +674,7 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
             },
             addLeaveTransition: async () => {
                 if (this.isDisposed == true) { return; }
+                if (this.element.nodeType != 1) { return; }
                 var self = this;
                 if (self?.options?.transition.name && self.options.transition.name !== '') {
                     var name = self.options.transition.name;
@@ -550,6 +691,7 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
             },
             addMoveTransition: async () => {
                 if (this.isDisposed == true) { return; }
+                if (this.element.nodeType != 1) { return; }
                 if (this.options.transition?.name && this.options.transition.name !== '') {
                     var name = this.options.transition.name;
                     this.class.remove([`${name}-enter`, `${name}-enter-start`, `${name}-leave`, `${name}-leave-end`])
@@ -559,6 +701,8 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
             },
             waitTransition: async (type: string, cb) => {
                 if (this.isDisposed == true) { return; }
+
+
                 var self = this._.methods;
                 var _this = this;
 
@@ -570,6 +714,11 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
                         })
                     }
                 }
+                if (this.element.nodeType != 1) {
+                    onstaged()
+                    cb()
+                    return;
+                }
                 if (_this.options.transition.name && _this.options.transition.name !== '' && type !== '') {
                     var name = _this.options.transition.name;
                     var transitionInfo = getTransitionInfo(_this.element as Element, `${name}-${type} ${name}-${type}-start`);
@@ -577,7 +726,7 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
                     if (transitionInfo.timeout != null) {
 
                         return new Promise(resolve => {
-                            window.setTimeout(async () => {
+                            dom.window.setTimeout(async () => {
 
                                 if (type !== 'leave') {
                                     if (_this.options?.transition?.name && _this.options.transition.name !== '') {
@@ -603,9 +752,9 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
                 if (this.isDisposed == true) { return; }
                 var self = this._.methods;
 
-                window.clearTimeout(self._oldDelayer);
+                dom.window.clearTimeout(self._oldDelayer);
                 return new Promise((resolve: any) => {
-                    self._oldDelayer = window.setTimeout(() => {
+                    self._oldDelayer = dom.window.setTimeout(() => {
                         resolve();
                         if (cb) { cb() }
                     }, milliseconds);
@@ -614,17 +763,17 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
             remove: () => {
                 if (this.isDisposed == true) { return; }
                 if (this.element) {
-                    if (this.element instanceof Text) {
-                        this.element.remove();
+                    if (this.element.nodeType == NodeTypes.TEXT_NODE) {
+                        (this.element as any).remove();
                     }
-                    else if (this.element instanceof Element) {
-                        this.element.remove();
-                    } else if (this.element instanceof DocumentFragment) {
+                    else if (this.element.nodeType == NodeTypes.ELEMENT_NODE) {
+                        (this.element as any).remove();
+                    } else if (this.element.nodeType == NodeTypes.DOCUMENT_FRAGMENT_NODE) {
                         this.element.firstChild?.remove();
-                    } else if (this.element instanceof HTMLTemplateElement) {
-                        this.element.content.firstChild?.remove();
+                    } else if (this.element.nodeName === 'TEMPLATE') {
+                        (this.element as any).content.firstChild?.remove();
                     } else {
-                        this.element.remove();
+                        (this.element as any).remove();
                     }
                 }
             },
@@ -644,9 +793,10 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
 
                 if (Array.isArray(item)) {
                     item.forEach((t, index2) => {
-                        t['insertTo'] = index + index2;
-                        t.parent = self;
-                        t.build();
+                        this._.methods.itemadd(index + index2, t);
+                        // t['insertTo'] = index + index2;
+                        // t.parent = self;
+                        // t.build();
                     })
                 } else {
                     if (item.build) {
@@ -674,6 +824,13 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
                             adding.parent = self;
                             adding['insertTo'] = index;
                             adding.build();
+                        } else if (Array.isArray(nitem)) {
+                            nitem.forEach((t, index2) => {
+                                this._.methods.itemadd(index + index2, t);
+                                // t['insertTo'] = index + index2;
+                                // t.parent = self;
+                                // t.build();
+                            })
                         } else {
                             console.warn('build err', typeof nitem, nitem, item);
                         }
@@ -700,6 +857,17 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
 
     protected constructor(tag, props, args) {
 
+        Object.keys(this._.methods).forEach(k => {
+            if (typeof this._.methods[k] === 'function') {
+                this._.methods[k] = this._.methods[k].bind(this);
+            }
+        })
+
+
+
+        if (!props) {
+            props = {};
+        }
 
         if (props && props.oncreating) {
             this.on('oncreating', props.oncreating); delete props.oncreating;
@@ -707,8 +875,15 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
         if (args && args.oncreating) {
             this.on('oncreating', args.oncreating); delete args.oncreating;
         }
-        this._.event.oncreating();
-        this._.placeholder = PlaceholderElement.cloneNode(true) as any;
+        const predefinedsettings = ['onstaged', 'preconfig', 'oncreating', 'oncreated', 'onbuilding', 'onbuilded', 'ondisposing', 'ondisposed', 'onconfig', 'onsetup', 'initializeComponent', 'renderTo'];
+        if (props) {
+            predefinedsettings.forEach(x => {
+                if (props[x]) { this.on(x, props[x]); delete props[x]; }
+            })
+        }
+
+
+        this._.placeholder = getDefaults().PlaceholderElement.cloneNode(true) as any;
         this.setText = this.setText.bind(this);
         this.add = this.add.bind(this);
         this.setTempContent = this.setTempContent.bind(this);
@@ -723,27 +898,22 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
         this.removeHandler = this.removeHandler.bind(this);
         this.using = this.using.bind(this);
 
+        this._.event.oncreating();
 
         if (this.elementCreating) { tag = CreateLocalElement(this.elementCreating(tag, props)) }
 
         Object.keys(this).forEach(k => {
-            if (typeof this[k] === 'function') {
+            if (k != 'runover' && typeof this[k] === 'function') {
                 this[k] = this[k].bind(this);
             }
         })
-        Object.keys(this._.methods).forEach(k => {
-            if (typeof this._.methods[k] === 'function') {
-                this._.methods[k] = this._.methods[k].bind(this);
-            }
-        })
+
         var assigned = {};
         var self = this;
-        if (!props) {
-            props = {};
-        }
 
 
-        const predefinedsettings = ['onstaged', 'preconfig', 'oncreating', 'oncreated', 'onbuilding', 'onbuilded', 'ondisposing', 'ondisposed', 'onconfig', 'onsetup', 'initializeComponent', 'renderTo'];
+
+
         // var psd = Object.keys(props).filter(x => x.startsWith('on:'));
         // psd.forEach(x => {
         //     if (predefinedsettings.indexOf(x) < 0) {
@@ -751,19 +921,14 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
         //     }
         // })
 
-        if (props) {
-            predefinedsettings.forEach(x => {
-                if (props[x]) { this.on(x, props[x]); delete props[x]; }
 
-            })
-        }
 
 
 
         this.props = props;
 
-        
-        if (this.props['indexkey']) {
+
+        if (this.props['indexkey'] || this.props['key']) {
             this.options.settings['oi'] = typeof this.props['indexkey'] == 'function' ? this.props['indexkey']() : this.props['indexkey'];
             this.options.settings['ni'] = this.props['indexkey'];
             delete this.props['indexkey'];
@@ -773,36 +938,28 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
         //     delete this.props['key'];
         // }
         if (args) {
+
             predefinedsettings.forEach(x => {
-
                 if (args[x]) { this.on(x, args[x]); delete args[x]; }
-
             })
 
             if (args.setup) { this.on("setup", args.setup); /*this.setup = args.setup; this.on("setup", args.setup.bind(this));*/ }// this.setup = args.setup; 
             Object.keys(args).forEach(k => {
-                if (k != 'onsetup' && k != 'props' && k !== 'preconfig' && k !== 'oncreating' && k !== 'oncreated' && k !== 'onbuilding' && k !== 'onbuilded' && k !== 'ondisposing' && k !== 'ondisposed' && k !== 'onconfig' && k != 'setup') {
+                if (k != 'class' && k != 'onsetup' && k != 'props' && k !== 'preconfig' && k !== 'oncreating' && k !== 'oncreated' && k !== 'onbuilding' && k !== 'onbuilded' && k !== 'ondisposing' && k !== 'ondisposed' && k !== 'onconfig' && k != 'setup') {
                     assigned[k] = args[k];
                 }
             })
         }
+
         Object.assign(this, assigned);
 
-
-
         Object.keys(this).forEach(k => {
-            if (typeof this[k] === 'function' && k.startsWith('on') && k.length > 2) {
+            if (k != 'runover' && typeof this[k] === 'function' && k.startsWith('on') && k.length > 2) {
                 this.on(k, this[k].bind(this));
             }
         })
 
-
-
-
-
-        //Object.assign(this, props)
-
-
+        //Object.assign(this, props) 
         var self = this;
         if (this.context.extensions && this.context.extensions.size > 0) {
             var ref = {}
@@ -829,28 +986,21 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
             }, this);
 
         }
-
-
-
         if (tag === undefined || tag === null) {
             this._.isMainComponent = true;
 
             this._.isContainer = true;
-            this.element = PlaceholderElement.cloneNode(true) as ElementType;
+            this.element = getDefaults().PlaceholderElement.cloneNode(true) as ElementType;
         } else {
             this.element = tag;
         }
 
 
         if (this.props && this.props["ref"] && typeof this.props['ref'] === 'function') {
+
             this.props["ref"](this);
         }
 
-        if (this.initializeComponent) { this.initializeComponent = this.initializeComponent.bind(this); };
-
-        this._emitCollection?.get("initializeComponent")?.forEach(cb => {
-            cb(this);
-        })
 
 
 
@@ -921,6 +1071,14 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
         //Object.getPrototypeOf(this.element).component=this;
         // (this.element as any).component = ()=> this;
 
+
+
+
+        if (this.initializeComponent) { this.initializeComponent = this.initializeComponent.bind(this); };
+
+        this._emitCollection?.get("initializeComponent")?.forEach(cb => {
+            cb(this);
+        })
     }
 
     private _iswait: boolean = false;
@@ -970,11 +1128,41 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
         } else {
             this.element.appendChild(control.element)
         }
-    } 
+    }
     async build(target?: any) {
         if (this.isDisposed) { return }
-        this._.event.onconfig.bind(this)();
+        if ((this.element.nodeName == 'A') && ((this.props['useRouter']) || (this.attr.has('useRouter') && this.attr.get('useRouter')))) {
 
+            this.addHandler('click', (e) => {
+                var target = this.attr.get('href');
+                if (target) {
+                    e.preventDefault();
+                    this.context.navigate(target);
+                    e.stopPropagation();
+                }
+                return false;
+            })
+        } else if (((this.props['useRouter']) || (this.attr.has('useRouter') && this.attr.get('useRouter')))) {
+            this.addHandler('click', (e) => {
+                var target = this.props['href'];
+                if (target) {
+                    e.preventDefault();
+                    this.context.navigate(target);
+                    e.stopPropagation();
+                }
+                return false;
+            })
+        }
+
+        if (this["ref"] && typeof this["ref"] === 'function') {
+            this["ref"](this);
+            if (this.onRefCreated) { this.onRefCreated(this as any); }
+        }
+        if (this['runover'] && this['runover']['ref']) {
+            this['runover']['ref'](this);
+            if (this.onRefCreated) { this.onRefCreated(this as any); }
+        }
+        this._.event.onconfig.bind(this)();
         if (this.options.config.propSource['renderTo']) {
             var renderTo = this.options.config.propSource['renderTo'];
             if (typeof renderTo === 'function') {
@@ -994,11 +1182,11 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
 
         // } 
 
-        if (this["ref"] && typeof this["ref"] === 'function') {
-            this["ref"](this);
-        }
-        if (this['intervention'] && this['intervention']['ref']) {
-            this['intervention']['ref'](this);
+        // if (this["ref"] && typeof this["ref"] === 'function') {
+        //     this["ref"](this);
+        // }
+        if (this['runover'] && this['runover']['ref']) {
+            this['runover']['ref'](this);
         }
 
         if (this.onupdating) this.onupdating(this as any, { data: this.model, field: '', source: 'building' })
@@ -1132,14 +1320,16 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
 
                 self._.event.onbuilded();
                 this._.methods.addSlots();
+
+                this._.initializing.addPropsClass(this.props);
                 //this._.methods.addEnterTransition();
             }
             var selfMain = this;
             if (!this._.isInited) {
                 if (this['interrupt']) {
                     this['interrupt'](this as any, async function () {
-                        if (self['intervention'] && self['intervention']['interrupt']) {
-                            self['intervention']['interrupt'](self, async function () {
+                        if (self['runover'] && self['runover']['interrupt']) {
+                            self['runover']['interrupt'](self, async function () {
                                 resume(selfMain)
                             })
                         } else {
@@ -1226,8 +1416,8 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
 
             if (self['ondisposing']) { self['ondisposing'](self as any); }
 
-            if (this['intervention'] && this['intervention']['ondisposing']) {
-                this['intervention']['ondisposing'](this);
+            if (this['runover'] && this['runover']['ondisposing']) {
+                this['runover']['ondisposing'](this);
             }
 
             this._emitCollection?.get("ondisposing")?.forEach(cb => {
@@ -1399,7 +1589,7 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
                 this.controls.clear();
                 if (index === this.controls.length - 1) {
 
-                    window.setTimeout(resolveOuter, 0);
+                    dom.window.setTimeout(resolveOuter, 0);
                 }
             })
         });
@@ -1410,18 +1600,23 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
         if (this.isDisposed == true) { return; }
         if (this.sendedShow) { return }
         //if (this.isVisible) { return };
-        this._.methods.addEnterTransition();
         this.isVisible = true;
-        if (!this.parent || this.parent.element == null) {
-            if (this._.placeholder.isConnected && this._.placeholder.parentNode) {
-                dom.body.replaceChild(this.element, this._.placeholder);
-            } else {
-                dom.body.appendChild(this.element);
+        if (this.element.nodeType != 1) {
+            this.controls.forEach(x => { x.show() })
+        } else {
+            this._.methods.addEnterTransition();
+
+            if (!this.parent || this.parent.element == null) {
+                if (this._.placeholder.isConnected && this._.placeholder.parentNode) {
+                    dom.body.replaceChild(this.element, this._.placeholder);
+                } else {
+                    dom.body.appendChild(this.element);
+                }
+            } else if (this._.placeholder.parentNode) {
+                this._.placeholder.parentNode.replaceChild(this.element, this._.placeholder);
             }
-        } else if (this._.placeholder.parentNode) {
-            this._.placeholder.parentNode.replaceChild(this.element, this._.placeholder);
+            this._.methods.waitTransition('enter', () => { });
         }
-        this._.methods.waitTransition('enter', () => { });
 
         if (this.onupdated) this.onupdated(this as any, { data: this.model, field: '', source: 'show' })
         if (this.onshow && this.sendedShow == false && this.isRendered) { this.isVisible = true; this.sendedShow = true; this.onshow(this as any); }
@@ -1437,36 +1632,40 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
         // } else {
 
         //if (this.isRendered && this.isVisible) {
+        if (this.element.nodeType != 1) {
+            this.controls.forEach(x => { x.hide() })
+        } else {
+            this._.methods.addLeaveTransition();
+            await this._.methods.waitTransition('leave', () => {
+                if (!this.parent || !this.parent.element) {
+                    // if (this.isRendered) {
+                    //     dom.body.replaceChild(this._.placeholder, this.element)
+                    // } else { 
+                    //     var ph = this._.placeholder;
+                    //     this._.placeholder = this.element as any;
+                    //     this.element = ph as any;
+                    // }
+                    dom.body.replaceChild(this._.placeholder, this.element)
+                    // if (this.element.isConnected) {
 
-        this._.methods.addLeaveTransition();
-        await this._.methods.waitTransition('leave', () => {
-            if (!this.parent || !this.parent.element) {
-                // if (this.isRendered) {
-                //     dom.body.replaceChild(this._.placeholder, this.element)
-                // } else { 
-                //     var ph = this._.placeholder;
-                //     this._.placeholder = this.element as any;
-                //     this.element = ph as any;
-                // }
-                dom.body.replaceChild(this._.placeholder, this.element)
-                // if (this.element.isConnected) {
+                    // } else {
+                    //     dom.body.append(this.element);
+                    //     dom.body.replaceChild(this._.placeholder, this.element)
+                    // }
+                } else if (this.element.parentNode != undefined) {
+                    //this.element.parentNode.insertBefore(this._.placeholder, this.element);
+                    //this.element.parentNode.removeChild(this.element);
+                    this.element.parentNode.replaceChild(this._.placeholder, this.element);
+                }
+            });
+            // } else if (!this.isRendered) {
+            //     this.isVisible = false;
+            //     this.element.parentNode?.replaceChild(this._.placeholder, this.element);
+            // }
 
-                // } else {
-                //     dom.body.append(this.element);
-                //     dom.body.replaceChild(this._.placeholder, this.element)
-                // }
-            } else if (this.element.parentNode != undefined) {
-                //this.element.parentNode.insertBefore(this._.placeholder, this.element);
-                //this.element.parentNode.removeChild(this.element);
-                this.element.parentNode.replaceChild(this._.placeholder, this.element);
-            }
-        });
-        // } else if (!this.isRendered) {
-        //     this.isVisible = false;
-        //     this.element.parentNode?.replaceChild(this._.placeholder, this.element);
-        // }
+            // }
+        }
 
-        // }
         if (this.onupdated) this.onupdated(this as any, { data: this.model, field: '', source: 'hidding' })
         if (this.onhide && this.isRendered) this.onhide(this as any);
     }
@@ -1518,111 +1717,7 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
     }
 
     addHandler(event: string, callback: (e: Event | UIEvent | any, sender: IControl<ElementType, any, any>) => any): IControl<ElementType, any, any> {
-        if (this.isDisposed == true) { return this }
-        if (this.element === null || this.element === undefined) {
-            return this as any
-        }
-        var xname = event.trim();
-        var sender = this;
-        xname.split(" ").forEach(eventName => {
-
-            var spliter = ".";
-            if (eventName.indexOf("-") > -1) {
-                spliter = "-";
-            } else if (eventName.indexOf(":") > -1) {
-                spliter = ":";
-            }
-            var splt = eventName.split(spliter);
-            const event = {
-                key: splt[0],
-                options: {
-                    once: false,
-                    capture: false,
-                    passive: false,
-                    prevent: false,
-                    stop: false,
-                    trusted: false,
-                    self: false,
-                },
-
-                value: (ev: Event | any) => {
-
-                    var recall = () => {
-                        if (event.options.trusted === true && !ev.isTrusted) {
-                            return;
-                        }
-                        if (event.options.self) {
-                            if ((ev as Event).target !== sender.element) {
-                                return;
-                            }
-                        }
-
-                        if (splt.length > 1 && ev instanceof KeyboardEvent) {
-                            if (ev['key']?.toLowerCase() == splt[1].toLowerCase()) {
-                                if (event.options.prevent === true) {
-                                    ev.preventDefault();
-                                }
-                                if (event.options.stop === true) {
-                                    ev.stopPropagation();
-                                }
-                                callback(ev, sender as any)
-                            }
-                        }
-                        else {
-                            if (event.options.prevent === true) {
-                                ev.preventDefault();
-                            }
-                            if (event.options.stop === true) {
-                                ev.stopPropagation();
-                            }
-                            callback(ev, sender as any)
-                        }
-                    }
-                    Promise.resolve().then(() => {
-                        if (!queueMicrotask) {
-                            queueMicrotask(recall);
-                        } else {
-                            recall();
-                        }
-                    })
-
-                }
-            };
-
-            for (let index = 2; index <= splt.length; index++) {
-                const element = splt[index];
-                switch (element) {
-                    case 'once':
-                        event.options.once = true;
-                        break;
-                    case 'passive':
-                        event.options.passive = true;
-                        break;
-                    case 'prevent':
-                        event.options.prevent = true;
-                        break;
-                    case 'stop':
-                        event.options.stop = true;
-                        break;
-                    case 'trusted':
-                        event.options.trusted = true;
-                        break;
-                    default:
-                        break;
-                }
-            }
-
-            this._.eventHandlers.add(event);
-            try {
-                this.element.addEventListener(event.key, event.value, event.options)
-            } catch (err) {
-                console.error(err);
-            }
-
-
-        });
-
-        return this as any;
+        return this._.initializing.addHandler(event, callback)
     }
     removeHandler(event: string): IControl<ElementType, any, any> {
         if (this.isDisposed == true) { return this }
@@ -1796,7 +1891,7 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
     }
     getFirstElement(): IControl<any, any, any> {
 
-        if (!(this.element instanceof Text) && !(this.element instanceof Comment)) {
+        if (!(this.element.nodeType == NodeTypes.TEXT_NODE) && !(this.element.nodeType == NodeTypes.TEXT_NODE)) {
             return this;
         } else {
             return this.parent.getFirstElement();
@@ -1810,6 +1905,7 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
     onRouteChanged?(sender: caller): void;
     interrupt?(sender: caller, next: () => any): void;
     onconfig?(sender: caller);
+    onRefCreated?(sender: MoviComponent<any, any, any>);
     preconfig?(sender: caller);
     oncreating?(sender: caller);
     oncreated?(sender: caller);
@@ -1831,7 +1927,9 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
             page.parent = this;
             this.__isbusy = true;
             await this._.methods.addLeaveTransition();
+            if (this.isDisposed) { return }
             await this._.methods.waitTransition('leave', async () => {
+
                 var expandFunction = (f) => {
                     if (typeof f === 'function') {
                         return expandFunction(f())
@@ -1840,25 +1938,24 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
                     }
                 }
                 const complete = async () => {
+                    if (this.isDisposed) { return }
                     var xP = expandFunction(page);
                     this.add(xP);
                     this._.methods.addEnterTransition();
                     await this._.methods.waitTransition('enter', async () => {
-                        window.clearTimeout(this.__bto);
-                        this.__bto = window.setTimeout(() => {
+                        dom.window.clearTimeout(this.__bto);
+                        this.__bto = dom.window.setTimeout(() => {
                             this.__isbusy = false;
                         }, 100);
                     });
-
-
                 }
-                if (this.controls.length > 0) {
+                if (!this.isDisposed && this.controls.length > 0) {
                     await this.controls._map.forEach(async xr => {
                         if (!xr.isDisposed) {
                             await xr.dispose();
                         }
                     });
-                    if (this.controls.filter(x => !x.isDisposed).length == 0) {
+                    if (!this.isDisposed && this.controls.filter(x => !x.isDisposed).length == 0) {
                         await complete();
                     }
                 } else {

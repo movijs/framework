@@ -80,6 +80,7 @@ export interface IControl<ElementType extends ElementTypes, Props, caller> exten
         headers: Object,
         settings: object,
         autostyle: controlStyle<ElementType>,
+        ssrElementId:number,
         transition: {
             name: string
         }

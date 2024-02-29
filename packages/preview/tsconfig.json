@@ -8,9 +8,11 @@
     "allowJs": true,
     "target": "ES6",
     "module": "ESNext",
-    "jsx": "preserve"
+    "jsx": "preserve",
+    "sourceMap": true
   },
   "include": [
-    "src"
+    "src",
+    "global.d.ts"
   ]
 }

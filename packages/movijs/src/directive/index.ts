@@ -92,11 +92,11 @@ export class Directive {
         if (this.Configuration.ReloadSettings && this.relloadDirective) this.relloadDirective.dispose(this.Configuration.ReloadSettings, this.owner);
         if (this.Configuration.WaitSettings && this.waitDirective) this.waitDirective.dispose(this.Configuration.WaitSettings, this.owner);
         if (this.Configuration.LogicDirectiveSettings && this.logicDirective) this.logicDirective.dispose(this.Configuration.LogicDirectiveSettings, this.owner);
-        
+
         this.loopDirectives.forEach((v, k) => {
             v.dispose(k, k.fragment);
         })
-        
+
         this.attributeDirectives.forEach((v, k) => {
             v.dispose(k, this.owner);
         })
@@ -125,7 +125,7 @@ export class Directive {
         return false;
     }
     public async init() {
-        
+
         this._directives.forEach(d => {
             //d.init();
             if (d.Configuration && (d.Configuration.FieldName || d.Configuration.Property || d.Configuration.callback != null)) {
@@ -134,7 +134,7 @@ export class Directive {
         })
 
         this.loopDirectives.forEach((v, k) => {
-            
+
             v.init(k, k.fragment);
         })
 
@@ -150,7 +150,7 @@ export class Directive {
         if (this.Configuration.ReloadSettings && this.relloadDirective) this.relloadDirective.init(this.Configuration.ReloadSettings, this.owner);
         //if (this.Configuration.LogicDirectiveSettings && this.logicDirective) this.logicDirective.init(this.Configuration.LogicDirectiveSettings, this.owner);
         // if (this.Configuration.WaitSettings && this.waitDirective) this.waitDirective.init(this.Configuration.WaitSettings, this.owner);
-       
+
 
         this.logicDirectives.forEach((v, k) => {
             v.init(k, this.owner);
@@ -335,11 +335,14 @@ export class Directive {
 
         if (this.owner.isRendered) {
             if (__LoopSettings && __loopDirective) __loopDirective.init(__LoopSettings, fr);
-        } 
-        return fr; 
+        }
+        return fr;
     }
-    public effect(callback: () => any): Directive {
-
+    public effect(callback: () => any, compute?: () => any): Directive {
+        if (compute) {
+            this.logic(compute, callback);
+            return this;
+        }
         var Settings = new EffectDirectiveSettings();
         Settings.callback = callback;
         Settings.type = "function";
@@ -470,8 +473,8 @@ export class Directive {
 
     public logic(state, cb) {
 
-         
-        var fr = new Frame({}); 
+
+        var fr = new Frame({});
         this.owner.controls.add(fr);
 
         var Settings = new LogicDirectiveSettings();
@@ -483,7 +486,7 @@ export class Directive {
         if (this.owner.isRendered) {
             Directive.init(Settings, fr);
         }
- 
+
         return this;
     }
 

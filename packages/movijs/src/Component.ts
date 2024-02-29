@@ -1,6 +1,7 @@
 import { ApplicationService } from "./ApplicationService";
 import { MoviComponent } from "./ComponentBase";
 import { ComponentDefaults, ControlProps } from "./abstractions";
+import { NodeTypes } from "./abstractions/NodeTypesEnum";
 import { CreateLocalElement, ElementTypes } from "./core";
 import { dom } from "./core/Dom";
 
@@ -59,18 +60,24 @@ export interface BaseProp<T> extends ControlProps<any, T> { }
 
 
 export type UnwrapNestedProps<T> = T extends BaseProp<T> ? T : T extends ControlProps<Component<ElementTypes, T>, T> ? T : BaseProp<T>
-
+var elementCounter = 0;
 export class Component<ElementType extends ElementTypes = HTMLElement, StateType = any> extends MoviComponent<ElementType, StateType, Component<ElementType, StateType>> {
 
     constructor(options: UnwrapNestedProps<StateType>);
     constructor(tag: ElementType | string);
     constructor(tag: ElementType | string, options: UnwrapNestedProps<StateType> | StateType);
     constructor() {
-
+        elementCounter++;
         var tag;
         var props;
         var args: ControlProps<Component<ElementType, StateType>, StateType> | BaseProp<StateType> | undefined = undefined;
-
+        var foundedOnDom = false;
+        if (globalThis.window) { 
+            if (globalThis.window.document.querySelectorAll("[ssr-element-id=\"_" + elementCounter + "\"]").length > 0) {
+                tag = globalThis.window.document.querySelectorAll("[ssr-element-id=\"_" + elementCounter + "\"]")[0];
+                foundedOnDom = true;
+            }
+        }
 
         if (tag !== undefined && typeof tag === 'function') {
             var caller = (tag as any)(props);
@@ -87,7 +94,7 @@ export class Component<ElementType extends ElementTypes = HTMLElement, StateType
                 //     tag = arg;
                 // }
                 // var arg = arguments[0];
-                if (typeof arg === "object" && (arg instanceof Element) === false) {
+                if (typeof arg === "object" && (arg.nodeType == NodeTypes.ELEMENT_NODE) === false) {
                     if (arg && (arg.props != undefined && arg.props != null)) {
                         props = arg.props;
                     } else {
@@ -97,7 +104,7 @@ export class Component<ElementType extends ElementTypes = HTMLElement, StateType
                     tag = arg;
                 }
             } else if (arguments.length === 2) {
-                tag = arguments[0];
+                tag = foundedOnDom ? tag : arguments[0];
                 if (arguments[1]) {
                     if (arguments[1].props != null || arguments[1].props != undefined) {
                         props = arguments[1].props;
@@ -134,6 +141,10 @@ export class Component<ElementType extends ElementTypes = HTMLElement, StateType
             }
         }
 
+        if (!globalThis.window && (this.element as any).hasAttribute && !(this.element as any).hasAttribute("ssr-element-id")) {
+            (this.element as any).setAttribute("ssr-element-id", "_" + elementCounter);
+        }
+
     }
 
     setup?(sender?: Component<ElementType, StateType> | undefined);
@@ -161,7 +172,7 @@ export function AsyncContainer(importer, props) {
 
 export function moviComponent(tag?: any, options?: any): Component<any, any> {
 
-    if (typeof tag === 'string' || tag instanceof Element) {
+    if (typeof tag === 'string' || (tag && tag.nodeType == NodeTypes.ELEMENT_NODE)) {
         // if (tag instanceof HTMLSlotElement || tag === 'slot') {
         //     if (options && options.props) {
         //         options.props['isSlot'] = true;
@@ -171,9 +182,7 @@ export function moviComponent(tag?: any, options?: any): Component<any, any> {
         //     return resolveElement(tag, { ...options });
         // } else
 
-        if (tag instanceof HTMLUnknownElement) {
-            return resolveElement('div', options);
-        } else if (typeof tag === 'function') {
+        if (typeof tag === 'function') {
             return new Component({ view: () => tag, ...options });
         } else {
             return new Component(tag, options);
@@ -185,7 +194,7 @@ export function moviComponent(tag?: any, options?: any): Component<any, any> {
 }
 
 export function createElement(tag: any, options: any): Component<any, any> {
-    if (typeof tag === 'string' || tag instanceof Element) {
+    if (typeof tag === 'string' || (tag && tag.nodeType == NodeTypes.ELEMENT_NODE)) {
         return new Component(tag, options);
     } else {
         return resolveElement(tag, options);
@@ -196,7 +205,7 @@ export function moviFragment(options: any): Component<any, any> {
     // console.error("[MOVIJS]: fragment is not supported. auto convert to div element.")
     // return moviComponent('div', {...options});
     return new Component(dom.createComment(''), { ...options, isMainComponent: true });
-     
+
     // var f = new Fragment<any>(ops);// new Component({ isFragment: true, ...options });
     // console.error(options)
     // // f.onmounted = (s) => { 
@@ -247,7 +256,13 @@ function resolveElement(tag, props): Component<any, any> {
                 // var p = props['props'];
                 // delete props['props']; 
                 controller = new getFn(props);
-                Object.assign(controller, props);
+                var assigned = {};
+                Object.keys(props).forEach(k => {
+                    if (k == 'runover') {
+                        assigned[k] = props[k];
+                    }
+                })
+                Object.assign(controller, assigned);
                 //controller.options.config.reinitprops(props);
 
                 //controller.props = p;
@@ -300,15 +315,19 @@ function resolveElement(tag, props): Component<any, any> {
                         }
                     }
                 }
-
-
-
-
-
             }
 
         } catch (error) {
-            controller = tag(props);
+            try {
+                controller = new Component('div', {
+                    setup(s) {
+                        s.setText(() => { return 'ERROR:' + (error as Error).message });
+                    }
+                })
+                console.debug(error);
+            } finally {
+                return controller;
+            }
         }
     } else {
 

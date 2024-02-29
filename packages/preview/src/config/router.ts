@@ -1,10 +1,12 @@
 import MainLayout from "../layout/index";
+import { ApplicationService, RouteItem } from "movijs";
 
-export default [
+
+export default <RouteItem[]>[
     {
-        path: '/',
+        path: '/{lang?:}',
         control: MainLayout,
-        keepAlive: true,
+        keepAlive: false, 
         childs: [
             {
                 path: '/',
@@ -14,12 +16,24 @@ export default [
             {
                 path: '/index.html',
                 control: () => import("../pages/home"),
-                keepAlive: true
+                keepAlive: true,
+
             },
             {
                 path: '/about/{page?:about}',
                 control: () => import("../pages/about"),
-                keepAlive: true
+                keepAlive: true,
+                validate(e) {
+                    return true;
+                }
+            },
+            {
+                path: '/about/{page2?:about}',
+                control: () => import("../pages/about"),
+                keepAlive: true,
+                validate(e) {
+                    return true;
+                }
             },
         ]
     },

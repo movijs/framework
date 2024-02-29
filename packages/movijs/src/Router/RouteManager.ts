@@ -26,6 +26,7 @@ export class RouteManager implements IRouteManager {
 
         var rc = new RouteRecord();
         rc.control = item.control;
+        rc.validate = item.validate;
         rc.layout = layout;
         rc.path = item.path;
         rc.parent = undefined;
@@ -57,6 +58,7 @@ export class RouteManager implements IRouteManager {
                 item.path = this._trimSlashes(item.path as string);
                 var rc = new RouteRecord();
                 rc.control = item.control;
+                rc.validate = item.validate;
                 rc.path = item.path;
                 rc.parent = undefined;
                 rc.isDefault = false;
@@ -100,6 +102,7 @@ export class RouteManager implements IRouteManager {
             c.path = this._trimSlashes(c.path as string);
 
             var rc = new RouteRecord();
+            rc.validate = c.validate;
             rc.control = c.control;
             rc.layout = item.control;
             rc.path = c.path;
@@ -404,8 +407,7 @@ export class RouteManager implements IRouteManager {
         // if (!ea.resume && this.router.prev != '__boot__') {
         //     return false;
         // }
-
-
+ 
         this._objectMapper.clear();
         if (route.parent != null) {
             //this.buildmapMiddlewared(route.parent, route);
@@ -521,8 +523,9 @@ export class RouteManager implements IRouteManager {
 
     private async GetController(RequestUri: string, cb: (found, controller) => any) {
         if (RequestUri == "") { RequestUri = "/" }
-        var fio = window.location.href.indexOf("?");
-        const urlSearchParams = new URLSearchParams(window.location.href.substring(fio));
+        
+        var fio = dom.window.location.href.indexOf("?");
+        const urlSearchParams = new URLSearchParams(dom.window.location.href.substring(fio));
 
         var cnt;
         var lyt;
@@ -533,12 +536,17 @@ export class RouteManager implements IRouteManager {
             if (!found) {
                 var key = new Scanner(keys);
                 var rx = key.exist(_RequestUri);
+                var validate = this.routes.get(keys)?.validate;
+                if (validate && rx) {
+                    rx = validate({ uri: _RequestUri, key: keys, routes: this.routes, params: key.parameters });
+                }
                 if (rx) {
 
                     this.params = key.parameters;
                     found = true;
-                    var r = this.routes.get(keys) as any;
 
+                    var r = this.routes.get(keys) as any; 
+                   
                     await this.startBuild(r);
                     var allMiddleware = 0;
                     var next = () => {
@@ -585,13 +593,13 @@ export class RouteManager implements IRouteManager {
 
     private GetRouteDetails(RequestUri: string): any {
 
-        if (window.location.protocol == 'file:') {
+        if (dom.window.location.protocol == 'file:') {
             if (RequestUri.endsWith(".html")) {
                 RequestUri = "/";
             }
         }
 
-        var urlSearchParams = new URLSearchParams(window.location.search);
+        var urlSearchParams = new URLSearchParams(dom.window.location.search);
         if (this.router.mode != "history" && RequestUri.split('?').length > 1) {
             urlSearchParams = new URLSearchParams(RequestUri.split("?")[1]);
         }
@@ -652,7 +660,7 @@ export class RouteManager implements IRouteManager {
 
     private GetRouteDetailsFromString(RequestUri: string): any {
 
-        if (window.location.protocol == 'file:') {
+        if (dom.window.location.protocol == 'file:') {
             if (RequestUri.endsWith(".html")) {
                 RequestUri = "/";
             }
@@ -727,7 +735,9 @@ export class RouteManager implements IRouteManager {
 
     getNotFound() {
         var RootBody = this.findBody(ApplicationService.current.MainPage) as RouterView;
-        RootBody.navigate(ApplicationService.current.NotFoundPage);
+        RootBody.navigate(ApplicationService.current.NotFoundPage());
     }
+
+
 
 }

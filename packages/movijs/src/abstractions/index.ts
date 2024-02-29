@@ -3,6 +3,7 @@ export * from "./IServiceManager"
 export * from "./IMoviApp"
 export * from "./IControl"
 export * from "./IAttribute"
+export * from "./IRouteManager"
 export * as arrayExtensions from "./Collections"
 
 export const ComponentDefaults = new Set<string>();
@@ -12,8 +13,8 @@ ComponentDefaults.add('activated');
 ComponentDefaults.add('activating');
 ComponentDefaults.add('routeChanged');
 ComponentDefaults.add('onRouteChanged');
-ComponentDefaults.add('interrupt');
-ComponentDefaults.add('intervention');
+//ComponentDefaults.add('interrupt');
+//ComponentDefaults.add('intervention');
 ComponentDefaults.add('onconfig');
 ComponentDefaults.add('preconfig');
 ComponentDefaults.add('oncreating');

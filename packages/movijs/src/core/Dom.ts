@@ -1,22 +1,25 @@
 function getCurrentDom() {
     if (globalThis && globalThis.movidom) {
-        return globalThis.movidom;
+        return globalThis.movidom.window.document;
     }
     return globalThis.document;
 }
 
+export function setDom(dom) {
+    if (globalThis) {
+        globalThis.movidom = dom;
+    }
+}
 
 export const dom = {
     get window() {
-        try {
-            if (globalThis) {
-                return globalThis;
-            }
-            return window;
-        } catch (error) {
-            return {}
+        if (globalThis && globalThis.window) {
+            return globalThis.window;
+        } else if (globalThis && globalThis.movidom) {
+            return globalThis.movidom.window;
+        } else {
+            return globalThis;
         }
-
     },
     _created: new Map<any, any>(),
     // createElement<K extends keyof HTMLElementTagNameMap>(tagName: K, options?: ElementCreationOptions): HTMLElementTagNameMap[K];
@@ -38,7 +41,10 @@ export const dom = {
 
     createDocumentFragment(): any {
         try {
-            return getCurrentDom()?.createDocumentFragment()
+            var cd = getCurrentDom();
+            if (cd) {
+                return cd.createDocumentFragment();
+            } 
         } catch (error) {
 
         }

@@ -103,7 +103,7 @@ export function targetTypeMap(rawType: string) {
 }
 
 export function getTargetType(value: any): TargetType {
-    if (value instanceof RouteManager || value instanceof ServiceManager || value instanceof Component ) {
+    if (value instanceof RouteManager || value instanceof ServiceManager || value instanceof Component) {
         return TargetType.SYSTEM;
     }
     return !Object.isExtensible(value)
@@ -183,7 +183,7 @@ export type UnwrapValueRefs<T> = T extends number ? RefUnwrapValueTypes<T> :
     T extends number ? RefUnwrapValueTypes<T> :
     T extends boolean ? RefUnwrapValueTypes<T> :
     T extends object ? UnwrapNestedRefs<T> :
-    T extends Array<T> ? UnwrapNestedRefs<T> :UnwrapRefSimple<T>;
+    T extends Array<T> ? UnwrapNestedRefs<T> : UnwrapRefSimple<T>;
 
 
 export var setupListener;

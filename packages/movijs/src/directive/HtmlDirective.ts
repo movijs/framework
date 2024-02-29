@@ -4,6 +4,7 @@ import { CheckType, DirectiveBindingType } from "../abstractions/DirectiveBindin
 import Bindable from "../Reactive/Bindable";
 import { IFxMapper } from "../Reactive/ReactiveEngine";
 import { ApplicationService } from "..";
+import { NodeTypes } from "../abstractions/NodeTypesEnum";
 export class HtmlDirectiveSettings {
     public Property!: object;
     public FieldName!: string;
@@ -39,10 +40,10 @@ export class HtmlDirective implements IDirective<HtmlDirectiveSettings>{
             return;
         }
         this._settings.oldValue = nValue;
-        if (this._source.element.tagName == 'script' || this._source.element.tagName == 'SCRIPT' || this._source.element instanceof HTMLScriptElement) { 
+        if (this._source.element.tagName == 'script' || this._source.element.tagName == 'SCRIPT' || this._source.element instanceof HTMLScriptElement) {
             return null;
         }
-         
+
         if (this._settings.oldValue === undefined || this._settings.oldValue === null) {
             this._settings.oldValue = '';
         }
@@ -53,7 +54,7 @@ export class HtmlDirective implements IDirective<HtmlDirectiveSettings>{
                 arrayToString = `${arrayToString} ${tx}`
             })
             //this._source.element.textContent = arrayToString;
-            if (this._source.element instanceof HTMLElement || this._source.element instanceof Element) {
+            if (this._source.element.nodeType == NodeTypes.ELEMENT_NODE) {
                 this._source.element.innerHTML = arrayToString.replace(/(\<script)([\S\s\.]*)(script\>)/gi, '');
             } else {
                 this._source.element.textContent = arrayToString.replace(/(\<script)([\S\s\.]*)(script\>)/gi, '');
@@ -68,7 +69,7 @@ export class HtmlDirective implements IDirective<HtmlDirectiveSettings>{
                     objectToString = `${objectToString} ${tx}:${this._settings.oldValue[tx]}`
                 })
                 //this._source.element.textContent = objectToString;
-                if (this._source.element instanceof HTMLElement || this._source.element instanceof Element) {
+                if (this._source.element.nodeType == NodeTypes.ELEMENT_NODE) {
                     this._source.element.innerHTML = objectToString.replace(/(\<script)([\S\s\.]*)(script\>)/gi, '');
                 } else {
                     this._source.element.textContent = objectToString.replace(/(\<script)([\S\s\.]*)(script\>)/gi, '');
@@ -81,7 +82,7 @@ export class HtmlDirective implements IDirective<HtmlDirectiveSettings>{
                 this.setupCompleted = true;
             }
             //this._source.element.textContent = this._settings.oldValue;
-            if (this._source.element instanceof HTMLElement || this._source.element instanceof Element) {
+            if (this._source.element.nodeType == NodeTypes.ELEMENT_NODE ) {
                 this._source.element.innerHTML = this._settings.oldValue.replace(/(\<script)([\S\s\.]*)(script\>)/gi, '');
             } else {
                 this._source.element.textContent = this._settings.oldValue.replace(/(\<script)([\S\s\.]*)(script\>)/gi, '');

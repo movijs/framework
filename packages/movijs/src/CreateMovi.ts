@@ -1,25 +1,41 @@
-import { IConfigurationOptions, IControl, IModelSettings, IMoviApp, IServiceManager } from "./abstractions";
-import { IApplicationService } from "./abstractions/IApplicationService";
+import { IServiceManager } from "./abstractions";
+import { IConfigurationOptions, IApplicationService } from "./abstractions/IApplicationService";
 import { ApplicationService } from "./ApplicationService";
 import { Component } from "./Component";
-import { NavigateEventArgs } from "./core";
+import { dom, NavigateEventArgs } from "./core";
 import { RouterView } from "./RouterView";
 // import { browser } from "./core";
-export class CreateMoviApp implements IMoviApp {
-    context: IApplicationService = ApplicationService.current;
 
+export interface IMoviApp<T extends IConfigurationOptions> {
+    Services?: IServiceManager;
+    Configuration?(options: T): void;
+    ServiceConfiguration?(services: IServiceManager): void;
+    Navigate?(e: NavigateEventArgs): void;
+    offline?(sender: IMoviApp<T>, e: Event): void;
+    online?(sender: IMoviApp<T>, e: Event): void;
+    onfullscreen?(isFullscreen: boolean): void;
+    use?(module: any): void;
+    context?: IApplicationService;
+}
+
+interface ConfigurationOptions extends IConfigurationOptions {
+    setErrorPages: (type: '404', page: () => Component<any, any>) => void;
+}
+
+export class CreateMoviApp implements IMoviApp<ConfigurationOptions> {
+    context: IApplicationService = ApplicationService.current;
     public use(module: any) {
         ApplicationService.current.use(module);
     };
     Services?: IServiceManager | undefined;
-    public offline?(sender: IMoviApp, e: Event) { }
-    public online?(sender: IMoviApp, e: Event) { }
+    public offline?(sender: IMoviApp<ConfigurationOptions>, e: Event) { }
+    public online?(sender: IMoviApp<ConfigurationOptions>, e: Event) { }
     public onfullscreen?(isFullscreen: boolean) { }
-    public Configuration?(options: IConfigurationOptions) { }
+    public Configuration?(options: ConfigurationOptions) { }
     public ServiceConfiguration?(services: IServiceManager) { }
     public Navigate?(e: NavigateEventArgs) { }
 
-    public constructor(options?: IMoviApp) {
+    public constructor(options?: IMoviApp<ConfigurationOptions>) {
         if (options) {
             Object.assign(this, options);
         }
@@ -27,19 +43,18 @@ export class CreateMoviApp implements IMoviApp {
             Route: ApplicationService.current.RouteManager,
             middleware: ApplicationService.current.middleware,
             ModelSettings: ApplicationService.current.ModelSettings,
-            setStateProvider: (name, values) => {
-                this.context.state[name] = values;
-            },
-        }
+            setStateProvider: (name, values) => { this.context.state[name] = values; },
+            setErrorPages: (type: '404', page: () => Component<any, any>) => { this.context.NotFoundPage = page; }
+        } as IConfigurationOptions;
         if (this.Configuration) { this.Configuration = this.Configuration.bind(this); }
-        if (this.Configuration) this.Configuration(this.context.Options);
+        if (this.Configuration) this.Configuration(this.context.Options as any);
 
         ApplicationService.current.starters.forEach(f => {
             f(this.context);
         })
         if (this.ServiceConfiguration) this.ServiceConfiguration(ApplicationService.current.services);
-        if (this.offline) window.addEventListener("offline", (e) => { this.offline && this.offline(this, e) })
-        if (this.online) window.addEventListener("online", (e) => { this.online && this.online(this, e) })
+        if (this.offline) dom.window.addEventListener("offline", (e) => { this.offline && this.offline(this, e) })
+        if (this.online) dom.window.addEventListener("online", (e) => { this.online && this.online(this, e) })
         //this.onfullscreen && browser.onDidChangeFullscreen(i => { this.onfullscreen &&  this.onfullscreen(i) })
 
     }
@@ -83,8 +98,8 @@ export class CreateMoviApp implements IMoviApp {
 
     }
 
-    public run(element: HTMLElement) {
-
+    public run(element: HTMLElement) { 
+        //element.innerHTML = "";
         var MainPage = new Component(element, {});
         var frm = new RouterView();
         MainPage.controls.add(frm);

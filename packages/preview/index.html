@@ -1,23 +1,13 @@
-<!doctype html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Movijs App</title>
-
-  <link rel="stylesheet" data-name="vs/editor/editor.main"
-    href="https://unpkg.com/monaco-editor@0.20.0/min/vs/editor/editor.main.css" />
-
-
-  <script>
-    var require = { paths: { vs: 'https://unpkg.com/monaco-editor@0.20.0/min/vs' } };
-  </script>
+ 
+  
   <script src="https://unpkg.com/monaco-editor@0.20.0/min/vs/loader.js"></script>
-  <link
-  rel="stylesheet"
-  href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"
-/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+ 
   <style>
     html {
       scrollbar-width: thin;
@@ -58,21 +48,8 @@
 
 <body>
   <div id="app" style="overflow:hidden"></div>
-
   <script type="module" src="/src/index.ts"></script>
-
-
-  <script>
-    // require(['vs/editor/editor.main'], function () {
-    //   // var editor = monaco.editor.create(document.getElementById('container'), {
-    //   // 	value: ['function x() {', '\tconsole.log("Hello world!");', '}'].join('\n'),
-    //   // 	language: 'javascript'
-    //   // });
-    // });
-
-    require(['vs/editor/editor.main'], () => { })
-  </script>
-
+ 
 
 </body>
 

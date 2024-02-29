@@ -1,4 +1,4 @@
-import { Component, IConfigurationOptions, IModelSettings } from "..";
+import { Component, dom } from "..";
 import { routeType } from "../core/NavigateEventArgs";
 import { IControl } from "./IControl";
 import { IRouteManager } from "./IRouteManager";
@@ -21,8 +21,8 @@ export class SysInternalNotification {
     notifyQ;
     public notify(event: string) {
 
-        window.clearTimeout(this.notifyQ);
-        this.notifyQ = window.setTimeout(() => {
+        dom.window.clearTimeout(this.notifyQ);
+        this.notifyQ = dom.window.setTimeout(() => {
             InternalEventStoreMap.forEach((k, v) => {
                 if (k === event) {
                     if (typeof v !== 'function') {
@@ -52,6 +52,19 @@ export interface IModule {
     install: () => {},
     run: () => {}
 }
+
+export interface IModelSettings {
+    PageSize: number
+}
+export interface IConfigurationOptions {
+    Route: IRouteManager;
+    middleware(ref: (next: () => any, e: IControl<any, any, any>) => void);
+    ModelSettings: IModelSettings;
+    onObjectRender?: (data: Object, component: IControl<any, any, any>) => void;
+    onReactiveEffectRun?: (type: string, ...args) => void;
+    onExternalCompiler?: (tag: any, ctx: any, props: any) => any;
+    setStateProvider: (name: string, values: object) => void; 
+}
 export interface IApplicationService {
     Options: IConfigurationOptions;
     services: IServiceManager;
@@ -59,7 +72,7 @@ export interface IApplicationService {
     ControlCollection: WeakMap<any, any>;
     RouteManager: IRouteManager;
     MainPage: IControl<any, any, any>;
-    NotFoundPage: IControl<any, any, any>;
+    NotFoundPage: () => IControl<any, any, any>;
     Loading: IControl<any, any, any>;
     state: any;
     store: any;

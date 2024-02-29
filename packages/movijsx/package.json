@@ -1,7 +1,7 @@
 {
   "private": false,
   "name": "movijsx",
-  "version": "1.1.45",
+  "version": "1.1.49",
   "description": "vite plugin for movi JSX",
   "author": "Ekrem Ershahin <ekremersahin@outlook.com>",
   "homepage": "https://movijs.com/",
@@ -17,7 +17,7 @@
   },
   "scripts": {
     "build": "rollup -c",
-    "publish": "npm publish" 
+    "publishall": "npm publish" 
   },
   "files": [
     "dist/*.js",

@@ -11,16 +11,22 @@ Object.defineProperty(ContentBodyCollection, 'set', {
     enumerable: false,
     value: (s, x) => {
         ContentBodyCollectionHandable.set(s, x);
-        ApplicationService.current.send(changeBodyCollectionHandler); 
+        ApplicationService.current.send(changeBodyCollectionHandler);
     }
 })
 
 
 interface ContentBlockProps {
-    target: string
+    target: string,
+    responsive?: [
+        {
+            width: number,
+            target: string
+        }
+    ]
 }
 export class ContentBlock extends Component<any, ContentBlockProps> {
-    constructor(props: BaseProp<ContentBlockProps>) {
+    constructor(props: ContentBlockProps) {
         super(null, props);
     }
     // onChildAdded(sender: this, child: Component<any, any>, index: number) {
@@ -31,12 +37,18 @@ export class ContentBlock extends Component<any, ContentBlockProps> {
     //     console.warn('Added')
     // }
     setup(sender: Component<HTMLElement, any>) {
+        if (this.props.responsive) {
+            var founded = this.props.responsive.sort((a, b) => a.width < b.width ? 1 : -1).filter(x => x.width <= window.innerWidth);
+            if (founded.length > 0) {
+                this.props.target = founded[founded.length - 1].target;
+            }
+        }
         var cb = ContentBodyCollectionHandable.get(this.props.target);
         var isCompleted = false;
         if (cb) {
             if (this.slots) {
                 cb.clear();
-                cb.add(...this.slots);                
+                cb.add(...this.slots);
             }
             cb.add(...this.controls);
         } else {
@@ -59,7 +71,7 @@ interface ContentBodyProps {
     name: string
 }
 export class ContentBody extends Component<any, ContentBodyProps> {
-    constructor(props: BaseProp<ContentBodyProps>) {
+    constructor(props: ContentBodyProps) {
         super(null, props);
         ContentBodyCollection.set(this.props.name, this);
     }
