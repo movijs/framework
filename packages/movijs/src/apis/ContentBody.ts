@@ -1,5 +1,6 @@
 import { ApplicationService } from "../ApplicationService";
 import { BaseProp, Component } from "../Component";
+import { Frame } from "../Frame";
 
 
 const ContentBodyCollection = new Map<string, ContentBody>();
@@ -17,13 +18,7 @@ Object.defineProperty(ContentBodyCollection, 'set', {
 
 
 interface ContentBlockProps {
-    target: string,
-    responsive?: [
-        {
-            width: number,
-            target: string
-        }
-    ]
+    target: string
 }
 export class ContentBlock extends Component<any, ContentBlockProps> {
     constructor(props: ContentBlockProps) {
@@ -37,17 +32,13 @@ export class ContentBlock extends Component<any, ContentBlockProps> {
     //     console.warn('Added')
     // }
     setup(sender: Component<HTMLElement, any>) {
-        if (this.props.responsive) {
-            var founded = this.props.responsive.sort((a, b) => a.width < b.width ? 1 : -1).filter(x => x.width <= window.innerWidth);
-            if (founded.length > 0) {
-                this.props.target = founded[founded.length - 1].target;
-            }
-        }
         var cb = ContentBodyCollectionHandable.get(this.props.target);
         var isCompleted = false;
         if (cb) {
             if (this.slots) {
-                cb.clear();
+                if (cb.props.disableMultiContent != true) {
+                    cb.clear();
+                }
                 cb.add(...this.slots);
             }
             cb.add(...this.controls);
@@ -58,7 +49,9 @@ export class ContentBlock extends Component<any, ContentBlockProps> {
                 var cb = ContentBodyCollectionHandable.get(this.props.target);
                 if (cb) {
                     if (this.slots) {
-                        cb.clear();
+                        if (cb.props.disableMultiContent != true) {
+                            cb.clear();
+                        }
                         cb.add(...this.slots)
                     }
                     cb.add(...this.controls);
@@ -66,9 +59,15 @@ export class ContentBlock extends Component<any, ContentBlockProps> {
             })
         }
     }
+    ondisposing(sender: Component<any, ContentBlockProps>) {
+        if (this.slots) {
+            this.slots.forEach(s => { s.dispose() })
+        }
+    }
 }
 interface ContentBodyProps {
-    name: string
+    name: string,
+    disableMultiContent?: boolean
 }
 export class ContentBody extends Component<any, ContentBodyProps> {
     constructor(props: ContentBodyProps) {

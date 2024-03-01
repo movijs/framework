@@ -5,6 +5,7 @@ import { NavigateEventArgs } from "../core/NavigateEventArgs";
 import { RouterView } from "../RouterView";
 import { reactive } from "../Reactive";
 import { dom } from "../core/Dom";
+import { renderPreProcessing } from "../apis/PreProcessing";
 
 export class Router implements IRouter {
 
@@ -102,6 +103,7 @@ export class Router implements IRouter {
 
 
                 });
+                renderPreProcessing();
                 self.navigate(p, bypas);
                 ApplicationService.current.internal.notify('routeChanged')
 

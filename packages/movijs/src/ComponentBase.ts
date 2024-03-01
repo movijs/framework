@@ -12,6 +12,7 @@ import { Directive } from "./directive";
 import { Component, ReactiveEngine, RouterView, Slot, baseemits, baseeventargs } from ".";
 import { dom } from "./core/Dom";
 import { NodeTypes } from "./abstractions/NodeTypesEnum";
+import { advanceif, isTemplate } from "./core/internal";
 
 
 
@@ -465,7 +466,7 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
                     return;
                 }
                 const array = Array.prototype.slice.call(this.element.childNodes);
-                if (this._.isMainComponent || this.element.nodeType == NodeTypes.TEXT_NODE || this.element.nodeType == NodeTypes.COMMENT_NODE) {
+                if (this._.isMainComponent || advanceif(this, NodeTypes.TEXT_NODE, NodeTypes.COMMENT_NODE)) {
                     //Mevcut komponent bir fragment içeriyor. Bir üst kontrole yönlendir. ve ana düğümü bulana kadar devam et.
                     //console.error("Ana düğüm bir fragment. üst birimde arama yapılacak") 
                     if (this.parent) {
@@ -476,7 +477,7 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
                 } else {
 
                     // Bu kontroller bir html düğümüdür.  
-                    if (child._.isMainComponent || child.element.nodeType == NodeTypes.TEXT_NODE || child.element.nodeType == NodeTypes.COMMENT_NODE) {
+                    if (child._.isMainComponent || advanceif(child, NodeTypes.TEXT_NODE, NodeTypes.COMMENT_NODE)) {
 
                         //Öğe önceden eklenmiş mi?
                         if (array.indexOf(child.element) > -1) {
@@ -489,7 +490,7 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
                                 if (child.parent) {
                                     var ito = child['insertTo'];
                                     var ref = child.parent.controls.filter(ff => ff.isRendered)[ito];
-                                    if (ref && (ref.element.nodeType == NodeTypes.TEXT_NODE || ref.element.nodeType == NodeTypes.COMMENT_NODE)) {
+                                    if (ref && advanceif(ref, NodeTypes.TEXT_NODE, NodeTypes.COMMENT_NODE)) {
                                         var len = array.indexOf(ref.element) - ref.controls.length;
                                         var newref = array[len];
                                         this.element.insertBefore(child.element, newref);
@@ -520,13 +521,13 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
                             } else {
                                 var ito = child['insertTo'];
                                 var ref = this.controls.filter(ff => ff.isRendered)[ito];
-                                if (ref && (ref.element.nodeType == NodeTypes.TEXT_NODE || ref.element.nodeType == NodeTypes.COMMENT_NODE)) {
+                                if (ref && advanceif(ref, NodeTypes.TEXT_NODE, NodeTypes.COMMENT_NODE)) {
                                     var len = array.indexOf(ref.element) - ref.controls.length;
                                     var newref = array[len];
                                     this.element.insertBefore(child.element, newref);
                                 } else {
 
-                                    if (this.element.nodeType == NodeTypes.COMMENT_NODE || this.element.nodeType == NodeTypes.TEXT_NODE) {
+                                    if (advanceif(this, NodeTypes.TEXT_NODE, NodeTypes.COMMENT_NODE)) {
                                         if (this.parent) {
                                             (this.parent as any)._.methods.AppendElement(child);
                                         } else {
@@ -558,12 +559,12 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
                             // console.error("Öğe önceden eklenmiş")
                             var ito = child['insertTo'];
                             var ref = this.controls.filter(ff => ff.isRendered)[ito];
-                            if (ref && (ref.element.nodeType == NodeTypes.TEXT_NODE || ref.element.nodeType == NodeTypes.COMMENT_NODE)) {
+                            if (ref && advanceif(ref, NodeTypes.TEXT_NODE, NodeTypes.COMMENT_NODE)) {
                                 var len = array.indexOf(ref.element) - ref.controls.length;
                                 var newref = array[len];
                                 this.element.insertBefore(child.element, newref);
                             } else {
-                                if (this.element.nodeType != NodeTypes.ELEMENT_NODE) {
+                                if (!advanceif(this, NodeTypes.ELEMENT_NODE)) {
                                     if (this.parent) {
                                         (this.parent as any)._.methods.AppendElement(child);
                                     } else {
@@ -591,7 +592,7 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
 
                                 var ito = child['insertTo'];
                                 var ref = child.parent.controls.filter(ff => ff.isRendered)[ito];
-                                if (ref && (ref.element.nodeType == NodeTypes.TEXT_NODE || ref.element.nodeType == NodeTypes.COMMENT_NODE)) {
+                                if (ref && advanceif(ref, NodeTypes.TEXT_NODE, NodeTypes.COMMENT_NODE)) {
                                     var len = array.indexOf(ref.element) - ref.controls.length;
                                     var newref = array[len];
                                     this.element.insertBefore(child.element, newref);
@@ -623,12 +624,12 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
                             } else {
                                 var ito = child['insertTo'];
                                 var ref = this.controls.filter(ff => ff.isRendered)[ito];
-                                if (ref && (ref.element.nodeType == NodeTypes.TEXT_NODE || ref.element.nodeType == NodeTypes.COMMENT_NODE)) {
+                                if (ref && advanceif(ref, NodeTypes.TEXT_NODE, NodeTypes.COMMENT_NODE)) {
                                     var len = array.indexOf(ref.element) - ref.controls.length;
                                     var newref = array[len];
                                     this.element.insertBefore(child.element, newref);
                                 } else {
-                                    if (this.element.nodeType != NodeTypes.ELEMENT_NODE) {
+                                    if (!advanceif(this, NodeTypes.ELEMENT_NODE)) {
                                         if (this.parent) {
                                             (this.parent as any)._.methods.AppendElement(child);
                                         } else {
@@ -763,14 +764,14 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
             remove: () => {
                 if (this.isDisposed == true) { return; }
                 if (this.element) {
-                    if (this.element.nodeType == NodeTypes.TEXT_NODE) {
+                    if (advanceif(this, NodeTypes.TEXT_NODE)) {
                         (this.element as any).remove();
                     }
-                    else if (this.element.nodeType == NodeTypes.ELEMENT_NODE) {
+                    else if (advanceif(this, NodeTypes.ELEMENT_NODE)) {
                         (this.element as any).remove();
-                    } else if (this.element.nodeType == NodeTypes.DOCUMENT_FRAGMENT_NODE) {
+                    } else if (advanceif(this, NodeTypes.DOCUMENT_FRAGMENT_NODE)) {
                         this.element.firstChild?.remove();
-                    } else if (this.element.nodeName === 'TEMPLATE') {
+                    } else if (isTemplate(this)) {
                         (this.element as any).content.firstChild?.remove();
                     } else {
                         (this.element as any).remove();
@@ -911,9 +912,13 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
         var assigned = {};
         var self = this;
 
-
-
-
+        if (props) {
+            Object.keys(props).forEach(k => {
+                if (k != 'class' && k != 'onsetup' && k != 'props' && k !== 'preconfig' && k !== 'oncreating' && k !== 'oncreated' && k !== 'onbuilding' && k !== 'onbuilded' && k !== 'ondisposing' && k !== 'ondisposed' && k !== 'onconfig' && k != 'setup') {
+                    assigned[k] = props[k];
+                }
+            })
+        }
         // var psd = Object.keys(props).filter(x => x.startsWith('on:'));
         // psd.forEach(x => {
         //     if (predefinedsettings.indexOf(x) < 0) {
@@ -922,10 +927,9 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
         // })
 
 
-
-
-
         this.props = props;
+
+
 
 
         if (this.props['indexkey'] || this.props['key']) {
@@ -1012,6 +1016,7 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
         }
         */
 
+         
         this.controls.ItemAdded = (item: any) => {
             if (item.genetic) item.genetic = this.genetic;
             if (this.isRendered) this._.methods.itemadd(this.controls.length - 1, item);
@@ -1038,6 +1043,7 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
         if (!ElementModelMap.has(this.element)) {
             ElementModelMap.set(this.element, this as any);
         }
+
 
         // Promise.resolve().then(x => {
         //     if (this.isDisposed) { return }
@@ -1079,6 +1085,8 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
         this._emitCollection?.get("initializeComponent")?.forEach(cb => {
             cb(this);
         })
+
+
     }
 
     private _iswait: boolean = false;
@@ -1891,7 +1899,8 @@ export abstract class MoviComponent<ElementType extends ElementTypes, StateType,
     }
     getFirstElement(): IControl<any, any, any> {
 
-        if (!(this.element.nodeType == NodeTypes.TEXT_NODE) && !(this.element.nodeType == NodeTypes.TEXT_NODE)) {
+        //!(this.element.nodeType == NodeTypes.TEXT_NODE) && !(this.element.nodeType == NodeTypes.TEXT_NODE)
+        if (advanceif(this, NodeTypes.ELEMENT_NODE)) {
             return this;
         } else {
             return this.parent.getFirstElement();

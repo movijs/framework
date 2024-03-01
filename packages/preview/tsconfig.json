@@ -9,7 +9,8 @@
     "target": "ES6",
     "module": "ESNext",
     "jsx": "preserve",
-    "sourceMap": true
+    "sourceMap": true  ,
+    "moduleResolution": "Node"
   },
   "include": [
     "src",

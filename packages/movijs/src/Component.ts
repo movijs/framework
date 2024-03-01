@@ -4,6 +4,7 @@ import { ComponentDefaults, ControlProps } from "./abstractions";
 import { NodeTypes } from "./abstractions/NodeTypesEnum";
 import { CreateLocalElement, ElementTypes } from "./core";
 import { dom } from "./core/Dom";
+import { advelif } from "./core/internal";
 
 // export class ComponentBasic extends MoviComponent<any, any, ComponentBasic>{
 //     constructor(tag: ElementTypes | string)
@@ -72,7 +73,7 @@ export class Component<ElementType extends ElementTypes = HTMLElement, StateType
         var props;
         var args: ControlProps<Component<ElementType, StateType>, StateType> | BaseProp<StateType> | undefined = undefined;
         var foundedOnDom = false;
-        if (globalThis.window) { 
+        if (globalThis.window) {
             if (globalThis.window.document.querySelectorAll("[ssr-element-id=\"_" + elementCounter + "\"]").length > 0) {
                 tag = globalThis.window.document.querySelectorAll("[ssr-element-id=\"_" + elementCounter + "\"]")[0];
                 foundedOnDom = true;
@@ -94,7 +95,7 @@ export class Component<ElementType extends ElementTypes = HTMLElement, StateType
                 //     tag = arg;
                 // }
                 // var arg = arguments[0];
-                if (typeof arg === "object" && (arg.nodeType == NodeTypes.ELEMENT_NODE) === false) {
+                if (typeof arg === "object" && advelif(arg, NodeTypes.ELEMENT_NODE) === false) {
                     if (arg && (arg.props != undefined && arg.props != null)) {
                         props = arg.props;
                     } else {
@@ -172,7 +173,7 @@ export function AsyncContainer(importer, props) {
 
 export function moviComponent(tag?: any, options?: any): Component<any, any> {
 
-    if (typeof tag === 'string' || (tag && tag.nodeType == NodeTypes.ELEMENT_NODE)) {
+    if (typeof tag === 'string' || (tag && advelif(tag, NodeTypes.ELEMENT_NODE))) {
         // if (tag instanceof HTMLSlotElement || tag === 'slot') {
         //     if (options && options.props) {
         //         options.props['isSlot'] = true;
@@ -194,7 +195,7 @@ export function moviComponent(tag?: any, options?: any): Component<any, any> {
 }
 
 export function createElement(tag: any, options: any): Component<any, any> {
-    if (typeof tag === 'string' || (tag && tag.nodeType == NodeTypes.ELEMENT_NODE)) {
+    if (typeof tag === 'string' || (tag && advelif(tag, NodeTypes.ELEMENT_NODE))) {
         return new Component(tag, options);
     } else {
         return resolveElement(tag, options);

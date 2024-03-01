@@ -1,6 +1,9 @@
 import { GriffelRenderer, CSSRulesByBucket, makeStyles as vanillaMakeStyles, GriffelStyle, createDOMRenderer } from "@griffel/core";
-import { StylesBySlots } from "@griffel/core/src/types";
 import { insertionFactory } from "./insertionFactory";
+import { ApplicationService } from "movijs";
+
+
+export * from "@griffel/core";
 
 export class MoviRenderer implements GriffelRenderer {
     el = document.createElement("style");
@@ -16,8 +19,6 @@ export class MoviRenderer implements GriffelRenderer {
     }
     id: string = 'SystemMainCompile';
     insertCSSRules(cssRules: CSSRulesByBucket): void {
-
-
         console.error(cssRules, this.insertionCache, this.stylesheets);
     }
     insertionCache: Record<string, keyof CSSRulesByBucket> = {};
@@ -25,16 +26,20 @@ export class MoviRenderer implements GriffelRenderer {
 }
 
 
-export function makeStyles<Slots extends string | number>(stylesBySlots: Record<Slots, GriffelStyle>) {
-    const getStyles = vanillaMakeStyles(stylesBySlots, insertionFactory); 
+export function makeStyles<Slots extends string | number>(stylesBySlots: Record<Slots, GriffelStyle>) { 
     return function useClasses(): Record<Slots, string> {
+        const getStyles = vanillaMakeStyles(stylesBySlots, insertionFactory); 
         const dir = 'ltr';
         const renderer = createDOMRenderer();
-
         return getStyles({ dir, renderer });
     };
 }
 
+var s = makeStyles({
+    body: {
+        backgroundColor: 'FF00000'
+    }
+});
 
 // export function makeStyle<Slots extends string | number>(stylesBySlots: StylesBySlots<Slots>, dir: 'ltr' | 'rtl'): Record<Slots, string> {
 //     return makeStyles(stylesBySlots)({

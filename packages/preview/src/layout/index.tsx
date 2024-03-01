@@ -1,4 +1,4 @@
-import { Component, MoviComponent, RouterView } from "movijs";
+import { Component, ContentBlock, MoviComponent, RouterView } from "movijs";
 import { LayoutViewModel } from "./view.model";
 import view from "./view";
 export function AccordionTitle({ title, ...props }) {
@@ -54,11 +54,21 @@ export default class MainLayout extends Component {
         selectedItem: {} as any
     })
     view() {
-        return <div class={""}> 
+        return <div class={""}>
             <h1>{this.context.route.params.lang}</h1>
             <RouterView onconfig={(s) => {
                 s.options.transition.name = 'fade'
             }}></RouterView>
+
+            <ContentBlock target="normal">
+                <h1 onclick={(e, s) => { s.dispose() }}>AX1</h1>
+            </ContentBlock>
+            <ContentBlock target="anormal">
+                <h1>BX1</h1>
+            </ContentBlock>
+            <ContentBlock target="expr">
+                <h1>CX!</h1>
+            </ContentBlock>
         </div>
     }
 }

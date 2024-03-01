@@ -1,6 +1,7 @@
 import { KeyValueItem, toKebab } from ".";
 import { IAttribute, IControl } from "../abstractions";
 import { NodeTypes } from "../abstractions/NodeTypesEnum";
+import { advanceif } from "./internal";
 export type ElementTypes = Node | Element | HTMLElement | Text | DocumentFragment | Comment | HTMLDivElement;
 export class controlAttribute<ElementType extends ElementTypes> implements IAttribute<IControl<ElementType, any, any>> {
     private _parent: IControl<ElementType, any, any>;
@@ -13,7 +14,7 @@ export class controlAttribute<ElementType extends ElementTypes> implements IAttr
         return this._parent;
     };
     remove(key: string): IControl<ElementType, any, any> {
-        if (this._parent.element.nodeType == NodeTypes.ELEMENT_NODE ) {
+        if (advanceif(this._parent as any, NodeTypes.ELEMENT_NODE)) {
             (this._parent.element as any).removeAttribute(key);
             if (!this.attributes.find(t => t.name === key)) {
                 var el = this.attributes.find(t => t.name === key);
@@ -27,7 +28,7 @@ export class controlAttribute<ElementType extends ElementTypes> implements IAttr
     };
     has(key: string): boolean {
 
-        if (this._parent.element.nodeType == NodeTypes.ELEMENT_NODE) {
+        if (advanceif(this._parent as any, NodeTypes.ELEMENT_NODE)) {
             return (this._parent.element as any).hasAttribute(key)
         }
 
@@ -38,7 +39,7 @@ export class controlAttribute<ElementType extends ElementTypes> implements IAttr
     };
     get(key: string): string | null {
 
-        if (this._parent.element.nodeType == NodeTypes.ELEMENT_NODE) {
+        if (advanceif(this._parent as any, NodeTypes.ELEMENT_NODE)) {
             if ((this._parent.element as any).hasAttribute(key)) {
                 return (this._parent.element as any).getAttribute(key)
             }
@@ -65,7 +66,7 @@ export class controlAttribute<ElementType extends ElementTypes> implements IAttr
                 this.parse(values[keyX], keyX)
             })
         } else if (typeof values == 'boolean') {
-            if ((this._parent.element.nodeType == NodeTypes.ELEMENT_NODE)) {
+            if ((advanceif(this._parent as any, NodeTypes.ELEMENT_NODE))) {
                 if (values == true) {
                     (this._parent.element as any).setAttribute(key, '')
                 } else {

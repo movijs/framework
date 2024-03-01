@@ -1,5 +1,6 @@
 import { IServiceManager } from "./abstractions";
 import { IConfigurationOptions, IApplicationService } from "./abstractions/IApplicationService";
+import { renderPreProcessing } from "./apis/PreProcessing";
 import { ApplicationService } from "./ApplicationService";
 import { Component } from "./Component";
 import { dom, NavigateEventArgs } from "./core";
@@ -98,7 +99,8 @@ export class CreateMoviApp implements IMoviApp<ConfigurationOptions> {
 
     }
 
-    public run(element: HTMLElement) { 
+    public run(element: HTMLElement) {
+        renderPreProcessing();
         //element.innerHTML = "";
         var MainPage = new Component(element, {});
         var frm = new RouterView();

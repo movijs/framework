@@ -1,6 +1,7 @@
-import { Component, CreateMoviApp, cache } from "movijs";
+import { Component, CreateMoviApp, cache, dom } from "movijs";
 import router from "./config/router.js";
 import "./index.css";
+
 
 var lngList = new Set<string>();
 lngList.add("tr");
@@ -11,26 +12,36 @@ const apps = new CreateMoviApp({
             theme: 'light'
         });
         options.Route.router.gate = (next, e) => {
-            if (e.route.params.lang == '' || !lngList.has(e.route.params.lang.toLowerCase())) {
+            if (e.route?.params.lang == '' || !lngList.has(e.route?.params.lang.toLowerCase())) {
                 //window.location.href = "/tr";
-                e.route.path = "/tr"
+                if (e.route) e.route.path = "/tr"
             }
             next();
         }
         router.map((r) => {
             options.Route.add(r as any);
         })
-        cache.set("x", this.context.useModel({ isminis: 'Ekrem Erşahin' }));
+        cache.set("x", this.context?.useModel({ isminis: 'Ekrem Erşahin' }));
         // useCache(() => { }, this.context.MainPage as any)
-        options.setErrorPages('404',()=>new Component('div'))
+        options.setErrorPages('404', () => new Component('div'))
         // options.onReactiveEffectRun = (s,t) => {
         //     console.error(s,t);
         // }
     },
     ServiceConfiguration() {
 
-    } 
+    }
 });
+
+var resizeContext = {
+    name: 'resize',
+    size: apps.context.useModel({ width: dom.window.innerWidth, height: dom.window.innerHeight })
+}
+dom.window.addEventListener('resize', () => {
+    resizeContext.size.width = dom.window.innerWidth;
+    resizeContext.size.height = dom.window.innerHeight;
+});
+apps.use(resizeContext)
 
 // var privateNames = new Set<string>();
 // privateNames.add('attr');

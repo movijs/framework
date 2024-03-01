@@ -12,7 +12,7 @@
     "esModuleInterop": true,
     "removeComments": false,
     "noImplicitAny": false,
-    "strictNullChecks": false,
+    "strictNullChecks": true,
     "allowUnusedLabels": true,  
     "jsx": "preserve", 
     "lib": [

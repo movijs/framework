@@ -1,6 +1,7 @@
 import { KeyValueItem, toKebab } from ".";
 import { IAttribute, IClass, IControl } from "../abstractions";
 import { NodeTypes } from "../abstractions/NodeTypesEnum";
+import { advanceif } from "./internal";
 
 export class controlClass<ElementType extends Element | HTMLElement | Text | DocumentFragment | Comment> implements IClass<IControl<ElementType, any, any>> {
     private _parent: IControl<ElementType, any, any>;
@@ -24,14 +25,14 @@ export class controlClass<ElementType extends Element | HTMLElement | Text | Doc
         if (Array.isArray(classNames)) {
             classNames.forEach(cn => {
                 cn.trim().split(" ").forEach(cls => {
-                    if (this._parent.element.nodeType == NodeTypes.ELEMENT_NODE && cls.toString().trim().length > 0) {
+                    if (advanceif(this._parent as any, NodeTypes.ELEMENT_NODE) && cls.toString().trim().length > 0) {
                         (this._parent.element as any).classList.remove(cls.trim())
                     }
                 })
             })
         } else {
             if (classNames == '**') {
-                if (this._parent.element.nodeType == NodeTypes.ELEMENT_NODE) {
+                if (advanceif(this._parent as any, NodeTypes.ELEMENT_NODE)) {
                     for (let index = (this._parent.element as any).classList.length; index > -1; index--) {
                         try {
                             (this._parent.element as any).classList.item(index) && (this._parent.element as any).classList.remove();
@@ -42,7 +43,7 @@ export class controlClass<ElementType extends Element | HTMLElement | Text | Doc
                 }
             } else {
                 classNames.trim().split(" ").forEach(cls => {
-                    if (this._parent.element.nodeType == NodeTypes.ELEMENT_NODE && cls.toString().trim().length > 0) {
+                    if (advanceif(this._parent as any, NodeTypes.ELEMENT_NODE) && cls.toString().trim().length > 0) {
                         (this._parent.element as any).classList.remove(cls.trim())
                     }
                 })
@@ -51,7 +52,7 @@ export class controlClass<ElementType extends Element | HTMLElement | Text | Doc
         return this._parent;
     }
     has(className: string): boolean {
-        if (this._parent.element.nodeType == NodeTypes.ELEMENT_NODE && className.toString().trim().length > 0) {
+        if (advanceif(this._parent as any, NodeTypes.ELEMENT_NODE) && className.toString().trim().length > 0) {
             return (this._parent.element as any).classList.contains(className.trim())
         }
         return false;
@@ -69,10 +70,10 @@ export class controlClass<ElementType extends Element | HTMLElement | Text | Doc
                 if (this.functionMapper.has(values)) {
                     var removeOld = this.functionMapper.get(values);
                     if (typeof removeOld == 'string' && removeOld.trim().length > 0) {
-                        if ((this._parent.element.nodeType == NodeTypes.ELEMENT_NODE)) {
+                        if ((advanceif(this._parent as any, NodeTypes.ELEMENT_NODE))) {
                             removeOld.split(" ").forEach(t => {
                                 (this._parent.element as any).classList.remove(t)
-                            }) 
+                            })
                         }
                     }
                     this.functionMapper.delete(values);
@@ -93,7 +94,7 @@ export class controlClass<ElementType extends Element | HTMLElement | Text | Doc
             })
         } else if (typeof values == 'boolean') {
             if (key) {
-                if ((this._parent.element.nodeType == NodeTypes.ELEMENT_NODE)) {
+                if ((advanceif(this._parent as any, NodeTypes.ELEMENT_NODE))) {
                     if (values == true) {
                         (this._parent.element as any).classList.add(key);
                         if (!this.oldMapper.has(key)) {
@@ -106,7 +107,7 @@ export class controlClass<ElementType extends Element | HTMLElement | Text | Doc
             }
         } else {
             values && values.trim().split(" ").forEach(cls => {
-                if ((this._parent.element.nodeType == NodeTypes.ELEMENT_NODE) && cls.trim() !== '' && cls.trim().length > 0) {
+                if ((advanceif(this._parent as any, NodeTypes.ELEMENT_NODE)) && cls.trim() !== '' && cls.trim().length > 0) {
                     (this._parent.element as any).classList.add(cls.trim());
                     if (!this.oldMapper.has(cls.trim())) {
                         this.oldMapper.add(cls.trim());
