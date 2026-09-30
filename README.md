@@ -1,3 +1,23 @@
+> [!IMPORTANT]
+> **movijs is no longer maintained. Its successor is [MotifJS](https://github.com/motifjsdev/motifjs).**
+>
+> This repository is archived and read-only. The last release, 1.4.1 (December 2024), stays on npm, but it will not receive fixes or new versions. Issues and pull requests are closed here.
+>
+> MotifJS is where the work continues: a reworked core, a new JSX compiler, and an MIT license. It is published as two packages:
+>
+> ```bash
+> npm install @motifx/core
+> npm install -D @motifx/compiler
+> ```
+>
+> MotifJS is not a drop-in replacement. The API is different, so moving an existing movijs application is a migration, not a version bump. Existing movijs applications keep working as they are; new projects should start on MotifJS.
+>
+> - Repository and documentation: https://github.com/motifjsdev/motifjs
+> - Core: https://www.npmjs.com/package/@motifx/core
+> - Compiler: https://www.npmjs.com/package/@motifx/compiler
+> - Questions and bug reports: https://github.com/motifjsdev/motifjs/issues
+
+
 # [movijs](https://movijs.dev/) &middot;   [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/movijs/framework) [![npm version](https://img.shields.io/npm/v/movijs.svg?style=flat)](https://www.npmjs.com/package/movijs)
 
 # Attention
